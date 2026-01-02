@@ -1,14 +1,33 @@
-import React from 'react'
-import Hero from '../../Component/Hero/Hero'
-import Filter from '../../Component/Filter/Filter'
+import React, { useEffect } from "react";
+
+import Filter from "../../component/Filter/Filter";
+import Carousel from "./../../component/Carousel/Carousel";
+import MovieGrid from "../../component/MovieGrid/MovieGrid";
+import { fetchMovie } from "../../redux/Slices/movieSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useMemo } from "react";
 
 const Home = () => {
-    return (
-        <div>
-            <Hero />
-            <Filter />
-        </div>
-    )
-}
+  const dispatch = useDispatch();
+  const { status } = useSelector((state) => state.movies);
+  const filters = useSelector((state) => state.filters);
 
-export default Home
+  const queryParams = useMemo(
+    () => ({ status, ...filters }),
+    [status, filters]
+  );
+
+  useEffect(() => {
+    dispatch(fetchMovie(queryParams));
+  }, [queryParams]);
+
+  return (
+    <div>
+      <Carousel />
+      <Filter />
+      <MovieGrid />
+    </div>
+  );
+};
+
+export default Home;

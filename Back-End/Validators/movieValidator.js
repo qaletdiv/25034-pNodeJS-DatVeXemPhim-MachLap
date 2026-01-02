@@ -1,6 +1,5 @@
 const { body, param, query } = require("express-validator");
-const { Film } = require("../Models");
-
+const { Movie } = require("../Models");
 
 // const createCourseValidationRules = () => {
 //     return [
@@ -53,33 +52,32 @@ const { Film } = require("../Models");
 //     ]
 // }
 
-const getFilmValidationRules = () => {
-    return [
-        query("title")
-            .optional()
-            .isString()
-            .withMessage('title phai la chuoi')
-            .trim(),
-        query("format")
-            .optional()
-            .isIn(['2d', '3d', '4d', '5d'])
-            .withMessage('format chỉ được phép là: 2d 3d 4d 5d'),
-        query("category")
-            .optional()
-            .custom((value) => {
-                const ids = value.split(",");
+const getMovieValidationRules = () => {
+  return [
+    query("title")
+      .optional()
+      .isString()
+      .withMessage("title phai la chuoi")
+      .trim(),
+    query("format")
+      .optional({ checkFalsy: true })
+      .isIn(["2d", "3d", "4d", "5d"])
+      .withMessage("format chỉ được phép là: 2d 3d 4d 5d"),
+    query("category")
+      .optional()
+      .custom((value) => {
+        const ids = value.split(",");
 
-                const isValid = ids.every(id => Number.isInteger(Number(id)));
+        const isValid = ids.every((id) => Number.isInteger(Number(id)));
 
-                if (!isValid) {
-                    throw new Error("Category phải là danh sách số nguyên");
-                }
+        if (!isValid) {
+          throw new Error("Category phải là danh sách số nguyên");
+        }
 
-                return true;
-            }),
-
-    ]
-}
+        return true;
+      }),
+  ];
+};
 
 // const getDetailCouseValidationRules = () => {
 //     return [
@@ -159,5 +157,4 @@ const getFilmValidationRules = () => {
 //     ]
 // }
 
-
-module.exports = { getFilmValidationRules };
+module.exports = { getMovieValidationRules };
