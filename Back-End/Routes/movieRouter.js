@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const handleValidateErrors = require("../Middlewares/handleValidate");
-const { getMovieValidationRules } = require("../Validators/movieValidator");
+const {
+  getMovieValidationRules,
+  getDetailMovieValidationRules,
+} = require("../Validators/movieValidator");
 const { Op } = require("sequelize");
 const movieController = require("../Controllers/movieController");
 
@@ -12,11 +15,12 @@ router.get(
   movieController.getAllMovie
 );
 
-// router.get("/:id",
-//     getDetailCouseValidationRules(),
-//     handleValidateErrors,
-//     courseController.getCourseDetail
-// );
+router.get(
+  "/:id",
+  getDetailMovieValidationRules(),
+  handleValidateErrors,
+  movieController.getDetailMovie
+);
 
 router.post(
   "/",

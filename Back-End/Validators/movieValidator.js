@@ -79,16 +79,16 @@ const getMovieValidationRules = () => {
   ];
 };
 
-// const getDetailCouseValidationRules = () => {
-//     return [
-//         param('id')
-//             .notEmpty().withMessage('id là bắt buộc')
-//             .toInt()
-//             .isInt({ min: 1 })
-//             .withMessage('id phải là số nguyên dương >= 1')
-
-//     ]
-// }
+const getDetailMovieValidationRules = () => {
+  return [
+    param("id")
+      .notEmpty()
+      .withMessage("id là bắt buộc")
+      .toInt()
+      .isInt({ min: 1 })
+      .withMessage("id phải là số nguyên dương >= 1"),
+  ];
+};
 
 // const updateCouseValidationRules = () => {
 //     return [
@@ -157,4 +157,4 @@ const getMovieValidationRules = () => {
 //     ]
 // }
 
-module.exports = { getMovieValidationRules };
+module.exports = { getMovieValidationRules, getDetailMovieValidationRules };

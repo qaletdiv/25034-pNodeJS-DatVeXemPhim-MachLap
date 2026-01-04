@@ -27,7 +27,14 @@ const Register = () => {
       newErrors.phone = "Số điện thoại không được để trống";
     }
 
-    if (!email.includes("@")) {
+    if (phone.length < 10 || phone.length > 10) {
+      newErrors.phone = "Số điện thoại phải là 10 số";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      newErrors.email = "Email không được để trống";
+    } else if (!emailRegex.test(email)) {
       newErrors.email = "Email không hợp lệ";
     }
 

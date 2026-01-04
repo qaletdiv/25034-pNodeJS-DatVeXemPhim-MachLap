@@ -8,9 +8,9 @@ exports.getAllMovie = async (req, res, next) => {
     const where = {};
     const include = [];
 
+    /* ===== CATEGORY ===== */
     if (category && category.trim() !== "") {
       const categoryIds = category.split(",").map(Number);
-
       include.push({
         model: Category,
         as: "categories",
@@ -19,30 +19,34 @@ exports.getAllMovie = async (req, res, next) => {
       });
     }
 
+    /* ===== TITLE ===== */
     if (title) {
       where.title = { [Op.like]: `%${title}%` };
     }
 
-    if (format && format.trim() !== "") {
+    /* ===== FORMAT ===== */
+    if (format) {
       where.format = format;
     }
 
-    let showtimeInclude = null;
-
+    /* ===== SHOWTIME / THEATER ===== */
     if (status === "now" || theater) {
-      showtimeInclude = {
+      const showtimeInclude = {
         model: ShowTime,
         as: "showtimes",
-        required: status === "now", // now = INNER JOIN
+        required: status === "now" || !!theater,
         where: {},
         include: [
           {
             model: Room,
             as: "room",
+            required: !!theater,
             include: [
               {
                 model: MovieTheater,
                 as: "movietheater",
+                required: !!theater,
+                ...(theater && { where: { id: Number(theater) } }),
               },
             ],
           },
@@ -52,12 +56,6 @@ exports.getAllMovie = async (req, res, next) => {
       if (status === "now") {
         showtimeInclude.where.startTime = {
           [Op.lte]: new Date(),
-        };
-      }
-
-      if (theater && theater.trim() !== "") {
-        showtimeInclude.include[0].include[0].where = {
-          id: Number(theater),
         };
       }
 
@@ -82,29 +80,46 @@ exports.getAllMovie = async (req, res, next) => {
   }
 };
 
-// exports.getDetailFilm = async (req, res, next) => {
-//     const filmId = Number(req.params.id);
-//     if (isNaN(filmId)) {
-//         res.status(400).send("ID Khong hop le !!!");
-//     }
-//     try {
-//         const film = await Film.findByPk(filmId, {
-//             include: [
-//                 {
-//                     model: Category,
-//                     as: "category"
-//                 }
-//             ]
-//         });
-//         if (!film) {
-//             res.status(404).send("Khong tim thay phim !!!");
-//         }
-//         res.json(film);
-
-//     } catch (err) {
-//         next(err)
-//     }
-// }
+exports.getDetailMovie = async (req, res, next) => {
+  const filmId = Number(req.params.id);
+  if (isNaN(filmId)) {
+    res.status(400).send("ID Khong hop le !!!");
+  }
+  try {
+    const film = await Movie.findByPk(filmId, {
+      include: [
+        {
+          model: Category,
+          as: "categories",
+          through: { attributes: [] },
+        },
+        {
+          model: ShowTime,
+          as: "showtimes",
+          required: false,
+          include: [
+            {
+              model: Room,
+              as: "room",
+              include: [
+                {
+                  model: MovieTheater,
+                  as: "movietheater",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    if (isNaN(filmId)) {
+      return res.status(400).send("ID không hợp lệ");
+    }
+    res.json(film);
+  } catch (err) {
+    next(err);
+  }
+};
 
 exports.createMovie = async (req, res, next) => {
   try {

@@ -17,7 +17,7 @@ const PORT = 3000;
 app.use(cors());
 
 const limitmer = rateLimit({
-  max: 100, // limit 100 request
+  max: 1000, // limit 100 request
   windowMs: 15 * 60 * 1000, // about 15 minute
   standardHeaders: true,
   legacyHeaders: false,
