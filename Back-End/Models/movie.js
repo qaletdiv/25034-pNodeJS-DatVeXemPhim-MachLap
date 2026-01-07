@@ -40,6 +40,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         allowNull: false,
       },
+      name_character: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
       poster: {
         type: DataTypes.STRING,
         allowNull: false,

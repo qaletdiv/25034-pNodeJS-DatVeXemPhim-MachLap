@@ -1,20 +1,23 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const TZ = "Asia/Ho_Chi_Minh";
 
 //  FORMAT HELPERS (VN TIME)
 
-const formatDateVN = (iso) => dayjs(iso.replace("Z", "")).format("YYYY-MM-DD");
+const formatDateVN = (iso) => dayjs.utc(iso).tz(TZ).format("YYYY-MM-DD");
 
-const formatTimeVN = (iso) => dayjs(iso.replace("Z", "")).format("HH:mm");
+const formatTimeVN = (iso) => dayjs.utc(iso).tz(TZ).format("HH:mm");
 
-const isPastShowtime = (iso) => dayjs().isAfter(dayjs(iso.replace("Z", "")));
+const isPastShowtime = (iso) => dayjs().isAfter(dayjs.utc(iso).tz(TZ));
 
 const ShowtimePicker = ({ movie }) => {
-  console.log(movie, "testtttt");
-
   const navigate = useNavigate();
 
   // get film date list
@@ -23,10 +26,16 @@ const ShowtimePicker = ({ movie }) => {
 
     return [
       ...new Set(movie.showtimes.map((st) => formatDateVN(st.startTime))),
-    ].sort();
+    ].sort((a, b) => dayjs(a).unix() - dayjs(b).unix());
   }, [movie]);
 
   const [selectedDate, setSelectedDate] = useState(dates[0] || null);
+
+  useEffect(() => {
+    if (dates.length && !selectedDate) {
+      setSelectedDate(dates[0]);
+    }
+  }, [dates, selectedDate]);
 
   // Filter showtime by date
   const showtimesByDate = useMemo(() => {
@@ -40,7 +49,7 @@ const ShowtimePicker = ({ movie }) => {
   // Group by theater
   const theaters = useMemo(() => {
     return showtimesByDate.reduce((acc, st) => {
-      const name = st.room.movietheater.name;
+      const name = st.room?.movietheater?.name || "Không xác định";
       acc[name] = acc[name] || [];
       acc[name].push(st);
       return acc;
@@ -93,7 +102,7 @@ const ShowtimePicker = ({ movie }) => {
                   <button
                     key={st.id}
                     disabled={disabled}
-                    onClick={() => navigate(`/seat/${st.id}`)}
+                    onClick={() => navigate(`/seats/${st.id}`)}
                     className={`px-6 py-3 rounded-lg border transition
                       ${
                         disabled

@@ -18,6 +18,10 @@ db.Category = require("./category")(sequelize, Sequelize.DataTypes);
 db.ShowTime = require("./showTime")(sequelize, Sequelize.DataTypes);
 db.Room = require("./room")(sequelize, Sequelize.DataTypes);
 db.MovieTheater = require("./movieTheater")(sequelize, Sequelize.DataTypes);
+db.Seat = require("./seat")(sequelize, Sequelize.DataTypes);
+db.Order = require("./order")(sequelize, Sequelize.DataTypes);
+db.Payment = require("./payment")(sequelize, Sequelize.DataTypes);
+db.ShowtimeSeat = require("./showtimeSeat")(sequelize, Sequelize.DataTypes);
 
 // Check the models to see it have associate ?
 Object.keys(db).forEach((modelName) => {

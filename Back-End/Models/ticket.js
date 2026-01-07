@@ -5,40 +5,42 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Ticket extends Model {
     static associate(models) {
-      Ticket.belongsTo(models.User, {
-        foreignKey: "userId",
-        as: "user",
+      Ticket.belongsTo(models.Order, {
+        foreignKey: "orderId",
+        as: "order",
+      });
+
+      Ticket.belongsTo(models.ShowtimeSeat, {
+        foreignKey: "showtimeSeatId",
+        as: "showtimeSeat",
       });
     }
   }
+
   Ticket.init(
     {
-      userId: {
+      orderId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      showtimeId: {
+      showtimeSeatId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      seatId: {
-        type: DataTypes.INTEGER,
+      price: {
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
-      },
-      status: {
-        type: DataTypes.ENUM("booked", "paid", "cancelled"),
-        defaultValue: "booked",
       },
     },
     {
       sequelize,
       modelName: "Ticket",
       tableName: "Tickets",
-      timestamps: true,
+      timestamps: false,
       indexes: [
         {
           unique: true,
-          fields: ["showtimeId", "seatId"], // Prevent duplicate seat placement
+          fields: ["showtimeSeatId"],
         },
       ],
     }

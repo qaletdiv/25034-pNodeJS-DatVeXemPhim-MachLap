@@ -42,7 +42,7 @@ const MovieDetail = () => {
                 <Globe size={18} /> {movie.language}
               </span>
               <span className="px-3 py-1 bg-red-600 rounded-full text-sm">
-                {movie.age}+
+                C{movie.age}
               </span>
             </div>
 
@@ -59,8 +59,14 @@ const MovieDetail = () => {
                 <Play size={18} /> Trailer
               </button>
             </div>
-
-            <p className="text-gray-300">{movie.description}</p>
+            <p className="text-gray-300">
+              <span className="font-semibold">Diễn viên: </span>
+              {movie.name_character}
+            </p>
+            <p className="text-gray-300">
+              <span className="font-semibold">Mô tả: </span>
+              {movie.description}
+            </p>
           </div>
         </div>
 

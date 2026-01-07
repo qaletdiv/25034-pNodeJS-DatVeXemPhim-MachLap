@@ -8,6 +8,8 @@ exports.getAllMovie = async (req, res, next) => {
     const where = {};
     const include = [];
 
+    const now = new Date();
+
     /* ===== CATEGORY ===== */
     if (category && category.trim() !== "") {
       const categoryIds = category.split(",").map(Number);
@@ -30,12 +32,26 @@ exports.getAllMovie = async (req, res, next) => {
     }
 
     /* ===== SHOWTIME / THEATER ===== */
-    if (status === "now" || theater) {
-      const showtimeInclude = {
+    if ((status === "now" || theater) && status !== "soon") {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const showtimeWhere = {};
+
+      if (status === "now") {
+        showtimeWhere.startTime = {
+          [Op.between]: [startOfDay, endOfDay],
+        };
+      }
+
+      include.push({
         model: ShowTime,
         as: "showtimes",
-        required: status === "now" || !!theater,
-        where: {},
+        required: true, // bắt buộc có suất chiếu
+        where: showtimeWhere,
         include: [
           {
             model: Room,
@@ -51,20 +67,12 @@ exports.getAllMovie = async (req, res, next) => {
             ],
           },
         ],
-      };
-
-      if (status === "now") {
-        showtimeInclude.where.startTime = {
-          [Op.lte]: new Date(),
-        };
-      }
-
-      include.push(showtimeInclude);
+      });
     }
 
     /* ===== COMING SOON ===== */
     if (status === "soon") {
-      where.release_date = { [Op.gt]: new Date() };
+      where.release_date = { [Op.gt]: now };
     }
 
     const movies = await Movie.findAll({

@@ -5,6 +5,7 @@ import movieSlice from "./Slices/movieSlice";
 import filterSlice from "./Slices/filterSlice";
 import categorySlice from "./Slices/categorySlice";
 import theaterSlice from "./Slices/movieTheaterSlice";
+import seatSlice from "./Slices/seatSlice";
 
 const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ const store = configureStore({
     filters: filterSlice,
     categories: categorySlice,
     movieTheaters: theaterSlice,
+    seats: seatSlice,
   },
 });
 export default store;

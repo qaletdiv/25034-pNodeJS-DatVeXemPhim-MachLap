@@ -11,23 +11,28 @@ import Home from "./Screens/Home/Home";
 import Register from "./Screens/Register/Register";
 import CommonPage from "./Screens/CommonPage/CommonPage";
 import MovieDetail from "./screens/MovieDetail/MovieDetail";
-import SeatSelection from "./component/SeatSelection/SeatSelection";
-
+import Seat from "./screens/Seat/Seat";
+import ProtectedRoute from "./component/ProtectedRouter/ProtectedRouter";
 function App() {
-  const [editPro, setEditPro] = useState("");
-
   return (
     <>
       <BrowserRouter>
         <ToastContainer position="top-right" autoClose={2000} />
         <Routes>
-          <Route path="/test" element={<SeatSelection />}></Route>
+          <Route
+            path="/seats/:showtimeId"
+            element={
+              <ProtectedRoute>
+                <Seat />
+              </ProtectedRoute>
+            }
+          ></Route>
 
           <Route path="/login" element={<Login />}></Route>
           <Route path="/register" element={<Register />}></Route>
           <Route path="/" element={<CommonPage />}>
-            <Route path="/home" element={<Home />}></Route>
-            <Route path="/movie/:id" element={<MovieDetail />}></Route>
+            <Route path="home" element={<Home />}></Route>
+            <Route path="movie/:id" element={<MovieDetail />}></Route>
           </Route>
         </Routes>
       </BrowserRouter>

@@ -20,19 +20,23 @@ module.exports = (sequelize, DataTypes) => {
     {
       movieId: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
       },
       roomId: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
       },
       startTime: {
         type: DataTypes.DATE,
-        allowNull: true,
+        allowNull: false,
+      },
+      endTime: {
+        type: DataTypes.DATE,
+        allowNull: false,
       },
       price: {
         type: DataTypes.DECIMAL(10, 2),
-        allowNull: true,
+        allowNull: false,
       },
     },
     {
