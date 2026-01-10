@@ -7,14 +7,17 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       ShowtimeSeat.belongsTo(models.ShowTime, {
         foreignKey: "showtimeId",
+        as: "showtime",
       });
 
       ShowtimeSeat.belongsTo(models.Seat, {
         foreignKey: "seatId",
+        as: "seat",
       });
 
       ShowtimeSeat.hasOne(models.Ticket, {
         foreignKey: "showtimeSeatId",
+        as: "ticket",
       });
     }
   }
@@ -35,6 +38,10 @@ module.exports = (sequelize, DataTypes) => {
       },
       reservedUntil: {
         type: DataTypes.DATE,
+        allowNull: true,
+      },
+      reservedBy: {
+        type: DataTypes.INTEGER, // userId
         allowNull: true,
       },
     },

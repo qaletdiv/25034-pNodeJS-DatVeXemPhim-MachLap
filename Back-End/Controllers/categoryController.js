@@ -2,8 +2,8 @@ const { Category } = require("../Models");
 
 exports.getAllCategory = async (req, res, next) => {
   try {
-    const categories = await Category.findAll({});
-    res.json(categories);
+    const categories = await Category.findAll();
+    res.status(200).json(categories);
   } catch (err) {
     next(err);
   }
@@ -44,7 +44,7 @@ exports.updateCategory = async (req, res, next) => {
       return res.status(404).send("Không tìm thấy thể loại !!!");
     }
     const updatCategory = await Category.findByPk(categoryId);
-    res.json(updatCategory);
+    res.status(200).json(updatCategory);
   } catch (err) {
     next(err);
   }

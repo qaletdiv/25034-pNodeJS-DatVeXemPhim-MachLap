@@ -110,7 +110,7 @@ export const logout = createAsyncThunk("auth/logout", async () => {
 const authSlices = createSlice({
   name: "auth",
   initialState: {
-    user: null,
+    user: JSON.parse(localStorage.getItem("currentUser")) || null,
     accessToken: localStorage.getItem("accessToken") || null,
     loading: false,
     error: null,

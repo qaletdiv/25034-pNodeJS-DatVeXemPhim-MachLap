@@ -82,7 +82,7 @@ exports.getAllMovie = async (req, res, next) => {
       order: [["release_date", "ASC"]],
     });
 
-    res.json(movies);
+    res.status(200).json(movies);
   } catch (err) {
     next(err);
   }
@@ -123,7 +123,7 @@ exports.getDetailMovie = async (req, res, next) => {
     if (isNaN(filmId)) {
       return res.status(400).send("ID không hợp lệ");
     }
-    res.json(film);
+    res.status(200).json(film);
   } catch (err) {
     next(err);
   }

@@ -26,7 +26,7 @@ axiosClient.interceptors.response.use(
     console.log("originalRequest", originalRequest);
     if (
       response &&
-      response.status === 400 &&
+      response.status === 401 &&
       originalRequest.url !== "/api/login"
     ) {
       console.log("response -loi loi loi", response);

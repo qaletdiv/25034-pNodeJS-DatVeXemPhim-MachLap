@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const movieTheaterController = require("../Controllers/movieTheaterController");
 
 router.get("/", movieTheaterController.getAllMovieTheater);

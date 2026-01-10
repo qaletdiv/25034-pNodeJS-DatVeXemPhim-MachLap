@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useMemo } from "react";
 
 import Filter from "../../component/Filter/Filter";
 import Carousel from "./../../component/Carousel/Carousel";
 import MovieGrid from "../../component/MovieGrid/MovieGrid";
 import { fetchMovie } from "../../redux/Slices/movieSlice";
-import { useDispatch, useSelector } from "react-redux";
-import { useMemo } from "react";
 
 const Home = () => {
   const dispatch = useDispatch();

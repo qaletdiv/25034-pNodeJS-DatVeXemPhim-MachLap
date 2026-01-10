@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
-// import { fetchProduct } from "../../redux/Slices/productsSlice";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { GoogleLogin } from "@react-oauth/google";
+
 import {
   login,
   googleLogin,
   loginFacebook,
 } from "../../redux/Slices/authSlice";
-import { toast } from "react-toastify";
-import { GoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const [emailOrPhone, setEmailOrPhone] = useState("");
@@ -17,6 +17,9 @@ const Login = () => {
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
   const error = useSelector((state) => state.auth.error);
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/";
 
   const validate = () => {
     const newErrors = {};
@@ -48,7 +51,7 @@ const Login = () => {
         });
         // localStorage.setItem("currentUser", email);
         // await dispatch(fetchProduct())
-        navigate("/");
+        navigate(from, { replace: true });
       }
     }
   };
@@ -65,7 +68,7 @@ const Login = () => {
           autoClose: 2000,
           theme: "light",
         });
-        navigate("/");
+        navigate(from, { replace: true });
       }
     } else {
       toast.error("Đăng nhập Facebook thất bại");
@@ -193,7 +196,7 @@ const Login = () => {
                     autoClose: 2000,
                     theme: "light",
                   });
-                  navigate("/");
+                  navigate(from, { replace: true });
                 } else {
                   toast.error("Đăng nhập Google thất bại");
                 }

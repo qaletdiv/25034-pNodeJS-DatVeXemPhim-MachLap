@@ -1,9 +1,10 @@
 const bcrypt = require("bcrypt");
 const axios = require("axios");
-const { User } = require("../Models");
 const Sequelize = require("sequelize");
 const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
+
+const { User } = require("../Models");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -39,7 +40,7 @@ exports.facebookLogin = async (req, res) => {
       expiresIn: "7d",
     });
 
-    res.json({
+    res.status(200).json({
       accessToken: token,
       user: {
         id: user.id,
@@ -49,7 +50,7 @@ exports.facebookLogin = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(401).json({ message: "Facebook login failed" });
+    res.status(401).json({ message: "Đăng nhập Facebook thất bại !!!" });
   }
 };
 
@@ -90,7 +91,7 @@ exports.googleLogin = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.json({
+    res.status(200).json({
       user,
       accessToken,
     });

@@ -1,59 +1,110 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchSeats, holdSeat } from "../../redux/Slices/seatSlice";
-import useSeatSocket from "../../hooks/useSeatSocket";
 import { useParams } from "react-router-dom";
 import dayjs from "dayjs";
+
+import {
+  fetchSeats,
+  holdSeat,
+  toggleSelectSeat,
+  releaseSeat,
+} from "../../redux/Slices/seatSlice";
+
+import useSeatSocket from "../../hooks/useSeatSocket";
 
 export default function Seat() {
   const dispatch = useDispatch();
   const { showtimeId } = useParams();
 
-  const { seats, loading } = useSelector((state) => state.seats);
-  console.log(seats, "testt seat");
-
-  const [selectedSeats, setSelectedSeats] = useState([]);
-
-  useSeatSocket(showtimeId);
-
   useEffect(() => {
     dispatch(fetchSeats(showtimeId));
   }, [dispatch, showtimeId]);
 
+  const { seats, selectedSeatIds, loading } = useSelector(
+    (state) => state.seats
+  );
+
+  const currentMovie = useSelector((state) => state.movies.currentMovie);
+
+  const currentShowtime = currentMovie?.showtimes?.find(
+    (item) => Number(item.id) == showtimeId
+  );
+
+  const formatTimeHHMM = (timeString) => {
+    if (!timeString) return "";
+
+    const date = new Date(timeString);
+
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return `${hours}:${minutes}`;
+  };
+  const priceBase = currentShowtime?.price;
+
+  console.log(currentShowtime?.room?.name, "curmooooo");
+
+  useSeatSocket(showtimeId);
+
+  /* ===== GHẾ ĐƯỢC CHỌN ===== */
+  const selectedSeats = seats.filter((s) => selectedSeatIds.includes(s.id));
+
   /* ===== TỔNG TIỀN ===== */
   const totalPrice = useMemo(() => {
-    return selectedSeats.reduce((sum, s) => sum + s.price, 0);
+    return selectedSeats.reduce((sum, seat) => {
+      if (seat.seat.type === "vip") return sum + 120000;
+      if (seat.seat.type === "couple") return sum + 200000;
+      return sum + Number(priceBase);
+    }, 0);
   }, [selectedSeats]);
 
   /* ===== CLICK GHẾ ===== */
-  const handleSelectSeat = (seat) => {
+  const handleSelectSeat = async (seat) => {
+    // if (seat.status !== "available") return;
+
+    // const res = await dispatch(holdSeat(seat.id));
+
+    // if (holdSeat.fulfilled.match(res)) {
+    //   dispatch(toggleSelectSeat(seat.id));
+    // }
+
+    // Đã bán thì không cho bấm
+    if (seat.status === "booked") return;
+
+    const isSelected = selectedSeatIds.includes(seat.id);
+
+    /* ========== BỎ CHỌN ========== */
+    if (isSelected) {
+      dispatch(toggleSelectSeat(seat.id));
+      dispatch(releaseSeat(seat.id));
+      return;
+    }
+
+    /* ========== CHỌN MỚI ========== */
     if (seat.status !== "available") return;
 
-    dispatch(holdSeat(seat.id));
+    const res = await dispatch(holdSeat(seat.id));
 
-    setSelectedSeats((prev) => {
-      const exist = prev.find((s) => s.id === seat.id);
-
-      if (exist) {
-        return prev.filter((s) => s.id !== seat.id);
-      }
-
-      return [...prev, seat];
-    });
+    // chỉ khi BE giữ ghế thành công
+    if (holdSeat.fulfilled.match(res)) {
+      dispatch(toggleSelectSeat(seat.id));
+    }
   };
 
   /* ===== STYLE GHẾ ===== */
   const seatStyle = (seat) => {
+    if (selectedSeatIds.includes(seat.id)) return "bg-green-500 text-white";
+
     if (seat.status === "booked")
-      return "bg-gray-500 text-white cursor-not-allowed";
+      return "bg-gray-600 text-white cursor-not-allowed";
 
-    if (selectedSeats.find((s) => s.id === seat.id))
-      return "bg-green-500 text-white";
+    if (seat.status === "reserved") return "bg-gray-400 text-white";
 
-    if (seat.Seat.type === "vip") return "bg-yellow-400";
-    if (seat.Seat.type === "couple") return "bg-pink-400";
+    if (seat.seat?.type === "vip") return "bg-yellow-400 text-black";
 
-    return "bg-white";
+    if (seat.seat?.type === "couple") return "bg-pink-400 text-black";
+
+    return "bg-white text-black";
   };
 
   if (loading) {
@@ -64,9 +115,10 @@ export default function Seat() {
     <div className="max-w-6xl mx-auto p-6 text-white">
       {/* ===== THÔNG TIN SUẤT CHIẾU ===== */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">🎬 Avengers: Endgame</h1>
+        <h1 className="text-3xl font-bold">{currentMovie?.title}</h1>
         <p className="text-gray-400">
-          Phòng 1 • {dayjs().format("HH:mm DD/MM/YYYY")}
+          {currentShowtime?.room?.name} • {""}
+          {formatTimeHHMM(currentShowtime?.startTime)}
         </p>
       </div>
 
@@ -81,14 +133,19 @@ export default function Seat() {
           <button
             key={seat.id}
             onClick={() => handleSelectSeat(seat)}
-            disabled={seat.status !== "available"}
+            disabled={
+              seat.status === "booked" ||
+              (seat.status === "reserved" && !selectedSeatIds.includes(seat.id))
+            }
+            // disabled={seat.status === "booked"}
             className={`
               w-10 h-10 rounded text-xs font-bold
               flex items-center justify-center
+              transition-all
               ${seatStyle(seat)}
             `}
           >
-            {seat.status === "booked" ? "X" : seat?.Seat?.seatNumber}
+            {seat.status === "booked" ? "X" : seat.seat?.seatNumber}
           </button>
         ))}
       </div>
@@ -99,14 +156,15 @@ export default function Seat() {
         <Legend color="bg-yellow-400" text="Ghế VIP" />
         <Legend color="bg-pink-400" text="Sweetbox" />
         <Legend color="bg-green-500" text="Đang chọn" />
-        <Legend color="bg-gray-500" text="Đã bán" />
+        <Legend color="bg-gray-600" text="Đã bán" />
+        <Legend color="bg-gray-400" text="Người khác đang giữ ghế" />
       </div>
 
       {/* ===== BẢNG GIÁ ===== */}
       <div className="bg-[#1a1a1a] rounded-xl p-6 flex justify-between items-center">
         <div>
           <p className="text-gray-400">Ghế đã chọn</p>
-          <p>{selectedSeats.map((s) => s.Seat.seatNumber).join(", ")}</p>
+          <p>{selectedSeats.map((s) => s.seat.seatNumber).join(", ") || "-"}</p>
         </div>
 
         <div>
@@ -117,7 +175,7 @@ export default function Seat() {
         </div>
 
         <button
-          disabled={!selectedSeats.length}
+          disabled={!selectedSeatIds.length}
           className="bg-red-600 px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
         >
           Thanh toán
@@ -127,7 +185,6 @@ export default function Seat() {
   );
 }
 
-/* ===== COMPONENT NOTICE ===== */
 function Legend({ color, text }) {
   return (
     <div className="flex items-center gap-2">

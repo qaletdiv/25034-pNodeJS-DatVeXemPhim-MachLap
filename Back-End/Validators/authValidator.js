@@ -1,4 +1,5 @@
 const { body } = require("express-validator");
+
 const { User } = require("../Models");
 
 const registerValidationRules = () => {

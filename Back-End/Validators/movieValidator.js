@@ -1,4 +1,5 @@
 const { body, param, query } = require("express-validator");
+
 const { Movie } = require("../Models");
 
 // const createCourseValidationRules = () => {
@@ -83,7 +84,7 @@ const getDetailMovieValidationRules = () => {
   return [
     param("id")
       .notEmpty()
-      .withMessage("id là bắt buộc")
+      .withMessage("Id là bắt buộc")
       .toInt()
       .isInt({ min: 1 })
       .withMessage("id phải là số nguyên dương >= 1"),

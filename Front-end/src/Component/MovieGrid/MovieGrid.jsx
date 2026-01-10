@@ -1,6 +1,7 @@
 import { useSelector, useDispatch } from "react-redux";
-import MovieCard from "../MovieCard/MovieCard";
 import { useEffect, useState } from "react";
+
+import MovieCard from "../MovieCard/MovieCard";
 import { fetchMovie, setStatus } from "../../redux/Slices/movieSlice";
 
 const MovieGrid = () => {

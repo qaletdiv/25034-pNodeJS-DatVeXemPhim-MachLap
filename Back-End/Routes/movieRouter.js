@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
+const { Op } = require("sequelize");
+
 const handleValidateErrors = require("../Middlewares/handleValidate");
 const {
   getMovieValidationRules,
   getDetailMovieValidationRules,
 } = require("../Validators/movieValidator");
-const { Op } = require("sequelize");
 const movieController = require("../Controllers/movieController");
 
 router.get(

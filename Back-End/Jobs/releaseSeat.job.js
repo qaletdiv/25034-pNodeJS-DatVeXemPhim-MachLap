@@ -1,29 +1,52 @@
-const { ShowtimeSeat, Sequelize } = require("../Models");
-const { Op } = Sequelize;
+const { ShowtimeSeat, sequelize } = require("../Models");
+const { Op } = require("sequelize");
 
 module.exports = (io) => {
   setInterval(async () => {
+    const t = await sequelize.transaction();
+
     try {
       const expiredSeats = await ShowtimeSeat.findAll({
         where: {
           status: "reserved",
           reservedUntil: { [Op.lt]: new Date() },
         },
+        transaction: t,
       });
 
-      for (const seat of expiredSeats) {
-        await seat.update({
+      if (expiredSeats.length === 0) {
+        await t.commit();
+        return;
+      }
+
+      const seatIds = expiredSeats.map((s) => s.id);
+
+      // 🔥 UPDATE once – ATOMIC
+      await ShowtimeSeat.update(
+        {
           status: "available",
           reservedUntil: null,
-        });
+          reservedBy: null,
+        },
+        {
+          where: {
+            id: { [Op.in]: seatIds },
+          },
+          transaction: t,
+        }
+      );
 
-        // realtime notify
+      await t.commit();
+
+      // 🔥 SOCKET EMIT AFTER COMMIT
+      expiredSeats.forEach((seat) => {
         io.to(`showtime_${seat.showtimeId}`).emit("seat_released", {
-          seatId: seat.seatId,
+          showtimeSeatId: seat.id,
         });
-      }
+      });
     } catch (err) {
-      console.error("Release seat job error:", err);
+      await t.rollback();
+      console.error("❌ Release seat job error:", err);
     }
-  }, 60000);
+  }, 60 * 1000); // 1 minute
 };

@@ -1,20 +1,22 @@
 require("dotenv").config(); // load file env first
 const express = require("express");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
+const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
+
+const db = require("./Models");
+const errorHandleMiddleware = require("./Middlewares/errorHandler");
+const requestLoggerMiddleWare = require("./Middlewares/requestLogger");
+const releaseSeatJob = require("./Jobs/releaseSeat.job");
 const authRoutes = require("./Routes/authRouter");
 const movieRoutes = require("./Routes/movieRouter");
 const categoryRoutes = require("./Routes/categoryRouter");
 const movieTheaterRoutes = require("./Routes/movieTheaterRouter");
 const seatRoutes = require("./Routes/seatRouter");
-const rateLimit = require("express-rate-limit");
-const errorHandleMiddleware = require("./Middlewares/errorHandler");
-const requestLoggerMiddleWare = require("./Middlewares/requestLogger");
-const db = require("./Models");
-const helmet = require("helmet");
-const path = require("path");
-const http = require("http");
-const { Server } = require("socket.io");
-const releaseSeatJob = require("./Jobs/releaseSeat.job");
+const socketServer = require("./socketServer");
 
 const app = express();
 const PORT = 3000;
@@ -31,7 +33,7 @@ app.use(cors());
 app.set("io", io);
 
 const limitmer = rateLimit({
-  max: 1000, // limit 100 request
+  max: 300, // limit 300 request
   windowMs: 15 * 60 * 1000, // about 15 minute
   standardHeaders: true,
   legacyHeaders: false,
@@ -56,32 +58,21 @@ app.use("/api/seats", seatRoutes);
 app.use("/api", authRoutes);
 
 app.use(errorHandleMiddleware);
-const now = new Date();
-console.log(now, "tetst");
 
-io.on("connection", (socket) => {
-  console.log("🟢 socket connected:", socket.id);
-
-  socket.on("join_showtime", (showtimeId) => {
-    socket.join(`showtime_${showtimeId}`);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("🔴 socket disconnected");
-  });
-});
+/* ===== INIT SOCKET ===== */
+socketServer(io);
 
 db.sequelize
   .authenticate()
   .then(() => {
     console.log("Connect Database success !!");
 
-    releaseSeatJob(io);
+    server.listen(PORT, () => {
+      console.log("Server is loading ...");
+
+      releaseSeatJob(io);
+    });
   })
   .catch((err) => {
     console.error("Unable to connect to Database");
   });
-
-server.listen(PORT, () => {
-  console.log("Server is loading ...");
-});

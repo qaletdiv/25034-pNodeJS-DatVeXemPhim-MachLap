@@ -1,9 +1,10 @@
 import { Play, Clock, Globe } from "lucide-react";
 import { useEffect, useState } from "react";
-import ShowtimePicker from "../../component/ShowtimePicker/ShowtimePicker";
 import { useParams } from "react-router-dom";
-import { fetchMovie, fetchMovieById } from "../../redux/Slices/movieSlice";
 import { useDispatch, useSelector } from "react-redux";
+
+import { fetchMovie, fetchMovieById } from "../../redux/Slices/movieSlice";
+import ShowtimePicker from "../../component/ShowtimePicker/ShowtimePicker";
 
 const MovieDetail = () => {
   const [openTrailer, setOpenTrailer] = useState(false);

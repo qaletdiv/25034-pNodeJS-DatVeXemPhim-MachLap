@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import LogoutButton from "../LogoutButton/LogoutButton";
 import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
+
 import { setFilter } from "../../redux/Slices/filterSlice";
+import LogoutButton from "../LogoutButton/LogoutButton";
 
 const Header = () => {
   const navigate = useNavigate();

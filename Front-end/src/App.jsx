@@ -3,9 +3,9 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 import Login from "./Screens/Login/Login";
 import Home from "./Screens/Home/Home";
 import Register from "./Screens/Register/Register";
@@ -13,6 +13,7 @@ import CommonPage from "./Screens/CommonPage/CommonPage";
 import MovieDetail from "./screens/MovieDetail/MovieDetail";
 import Seat from "./screens/Seat/Seat";
 import ProtectedRoute from "./component/ProtectedRouter/ProtectedRouter";
+
 function App() {
   return (
     <>

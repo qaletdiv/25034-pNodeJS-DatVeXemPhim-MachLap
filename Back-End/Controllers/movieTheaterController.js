@@ -3,7 +3,7 @@ const { MovieTheater } = require("../Models");
 exports.getAllMovieTheater = async (req, res, next) => {
   try {
     const movieTheater = await MovieTheater.findAll({});
-    res.json(movieTheater);
+    res.status(200).json(movieTheater);
   } catch (err) {
     next(err);
   }
@@ -44,7 +44,7 @@ exports.updateMovieTheater = async (req, res, next) => {
       return res.status(404).send("Không tìm thấy rạp phim !!!");
     }
     const updateTheater = await Category.findByPk(movieTheaterId);
-    res.json(updateTheater);
+    res.status(200).json(updateTheater);
   } catch (err) {
     next(err);
   }

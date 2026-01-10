@@ -1,7 +1,17 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 
+import { fetchMovie } from "../../redux/Slices/movieSlice";
+
 const MovieCard = ({ movie }) => {
+  const status = useSelector((state) => state.movies.status);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchMovie({ status }));
+  }, [status, dispatch]);
+
   const navigate = useNavigate();
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString("vi-VN").replaceAll("/", "-");
@@ -46,7 +56,7 @@ const MovieCard = ({ movie }) => {
                        transform translate-y-4 group-hover:translate-y-0
                        transition duration-300"
             >
-              🎟 Đặt vé
+              {status === "soon" ? "Xem chi tiết" : "Đặt vé"}
             </button>
           </div>
 
