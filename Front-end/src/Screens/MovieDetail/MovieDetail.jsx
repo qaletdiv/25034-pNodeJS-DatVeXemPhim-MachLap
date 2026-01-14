@@ -16,6 +16,7 @@ const MovieDetail = () => {
   }, [dispatch, id]);
 
   const movie = useSelector((state) => state.movies.currentMovie);
+  console.log(movie);
 
   if (!movie) return <div>Loading...</div>;
 

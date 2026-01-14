@@ -13,6 +13,9 @@ import CommonPage from "./Screens/CommonPage/CommonPage";
 import MovieDetail from "./screens/MovieDetail/MovieDetail";
 import Seat from "./screens/Seat/Seat";
 import ProtectedRoute from "./component/ProtectedRouter/ProtectedRouter";
+import Checkout from "./screens/Checkout/Checkout";
+import Processing from "./screens/ProcessingPayment/Processing";
+import ConfirmPayment from "./screens/ConfirmPayment/ConfirmPayment";
 
 function App() {
   return (
@@ -28,8 +31,17 @@ function App() {
               </ProtectedRoute>
             }
           ></Route>
-
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            }
+          ></Route>
           <Route path="/login" element={<Login />}></Route>
+          <Route path="/processing" element={<Processing />}></Route>
+          <Route path="/success" element={<ConfirmPayment />}></Route>
           <Route path="/register" element={<Register />}></Route>
           <Route path="/" element={<CommonPage />}>
             <Route path="home" element={<Home />}></Route>

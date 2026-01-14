@@ -16,7 +16,10 @@ const movieRoutes = require("./Routes/movieRouter");
 const categoryRoutes = require("./Routes/categoryRouter");
 const movieTheaterRoutes = require("./Routes/movieTheaterRouter");
 const seatRoutes = require("./Routes/seatRouter");
+const ticketRoutes = require("./Routes/ticketRouter");
+const orderRoutes = require("./Routes/orderRouter");
 const socketServer = require("./socketServer");
+const orderController = require("../Back-End/Controllers/orderController");
 
 const app = express();
 const PORT = 3000;
@@ -24,10 +27,18 @@ const PORT = 3000;
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+  },
 });
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 // set io in app
 app.set("io", io);
@@ -45,6 +56,13 @@ app.use("/api", limitmer); //apply for rate limit middleware api call
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(requestLoggerMiddleWare);
+
+// routes/payment.js
+app.post(
+  "/api/orders/webhook",
+  express.raw({ type: "application/json" }),
+  orderController.stripeWebhook
+);
 app.use(express.json()); // is middleware using to parse data of body in format JSON
 
 app.use("/api/movie", movieRoutes);
@@ -54,6 +72,10 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/movieTheater", movieTheaterRoutes);
 
 app.use("/api/seats", seatRoutes);
+
+app.use("/api/orders", orderRoutes);
+
+app.use("/api/my-tickets", ticketRoutes);
 
 app.use("/api", authRoutes);
 

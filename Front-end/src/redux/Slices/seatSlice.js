@@ -52,7 +52,8 @@ const seatSlice = createSlice({
   reducers: {
     /* ===== SOCKET REALTIME ===== */
     seatReservedRealtime(state, action) {
-      const { showtimeSeatId, userId, currentUserId } = action.payload;
+      const { showtimeSeatId, userId } = action.payload;
+      const currentUserId = JSON.parse(localStorage.getItem("currentUser")).id;
 
       const seat = state.seats.find((s) => s.id === showtimeSeatId);
       if (!seat) return;
@@ -67,18 +68,22 @@ const seatSlice = createSlice({
       }
     },
 
-    // seatReleasedRealtime(state, action) {
-    //   const { showtimeSeatId } = action.payload;
-
-    //   const seat = state.seats.find((s) => s.id === showtimeSeatId);
-    //   if (seat) seat.status = "available";
-    // },
-
     seatReleasedRealtime(state, action) {
       const { showtimeSeatId } = action.payload;
 
       const seat = state.seats.find((s) => s.id === showtimeSeatId);
       if (seat) seat.status = "available";
+
+      state.selectedSeatIds = state.selectedSeatIds.filter(
+        (id) => id !== showtimeSeatId
+      );
+    },
+
+    seatBookedRealtime(state, action) {
+      const { showtimeSeatId } = action.payload;
+
+      const seat = state.seats.find((s) => s.id === showtimeSeatId);
+      if (seat) seat.status = "booked";
 
       state.selectedSeatIds = state.selectedSeatIds.filter(
         (id) => id !== showtimeSeatId
@@ -96,6 +101,10 @@ const seatSlice = createSlice({
       } else {
         state.selectedSeatIds.push(seatId);
       }
+    },
+
+    clearSelectedSeats(state) {
+      state.selectedSeatIds = [];
     },
   },
 
@@ -122,7 +131,12 @@ const seatSlice = createSlice({
   },
 });
 
-export const { seatReservedRealtime, seatReleasedRealtime, toggleSelectSeat } =
-  seatSlice.actions;
+export const {
+  seatReservedRealtime,
+  seatReleasedRealtime,
+  toggleSelectSeat,
+  seatBookedRealtime,
+  clearSelectedSeats,
+} = seatSlice.actions;
 
 export default seatSlice.reducer;

@@ -25,9 +25,9 @@ router.post(
 
 // // xác nhận ghế khi thanh toán thành công
 // router.post(
-//   "/:showtimeSeatId/book",
+//   "/:showtimeSeatId/booked",
 //   authenticateToken,
-//   seatController.bookSeat
+//   seatController.confirmBooking
 // );
 
 module.exports = router;

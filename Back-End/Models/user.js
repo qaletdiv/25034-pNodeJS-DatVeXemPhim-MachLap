@@ -9,6 +9,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "userId",
         as: "orders",
       });
+
+      User.hasMany(models.ShowtimeSeat, {
+        foreignKey: "reservedBy",
+        as: "showtimeseats",
+      });
     }
   }
   User.init(
@@ -16,10 +21,12 @@ module.exports = (sequelize, DataTypes) => {
       google_id: {
         type: DataTypes.STRING,
         allowNull: true,
+        unique: true,
       },
       facebook_id: {
         type: DataTypes.STRING,
         allowNull: true,
+        unique: true,
       },
       name: {
         type: DataTypes.STRING,

@@ -67,8 +67,6 @@ export const fetchMovieById = createAsyncThunk(
   "movies/fetchMovieById",
   async (id) => {
     const response = await axiosClient.get(`/api/movie/${id}`);
-    console.log(response, "test reeee");
-
     return response.data;
   }
 );

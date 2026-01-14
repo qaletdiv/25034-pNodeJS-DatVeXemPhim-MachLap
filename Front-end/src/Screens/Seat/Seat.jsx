@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 
 import {
@@ -8,21 +8,23 @@ import {
   holdSeat,
   toggleSelectSeat,
   releaseSeat,
+  clearSelectedSeats,
 } from "../../redux/Slices/seatSlice";
 
 import useSeatSocket from "../../hooks/useSeatSocket";
 
 export default function Seat() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { showtimeId } = useParams();
-
-  useEffect(() => {
-    dispatch(fetchSeats(showtimeId));
-  }, [dispatch, showtimeId]);
 
   const { seats, selectedSeatIds, loading } = useSelector(
     (state) => state.seats
   );
+
+  useEffect(() => {
+    dispatch(fetchSeats(showtimeId));
+  }, [dispatch, showtimeId]);
 
   const currentMovie = useSelector((state) => state.movies.currentMovie);
 
@@ -107,6 +109,25 @@ export default function Seat() {
     return "bg-white text-black";
   };
 
+  const handleCheckout = () => {
+    if (!selectedSeatIds.length) return;
+
+    // Lưu tạm để checkout dùng
+    localStorage.setItem(
+      "checkoutData",
+      JSON.stringify({
+        showtimeId,
+        seatIds: selectedSeatIds,
+        seats: selectedSeats.map((s) => s.seat.seatNumber),
+        totalPrice,
+        movieTitle: currentMovie.title,
+        showtime: formatTimeHHMM(currentShowtime.startTime),
+      })
+    );
+
+    navigate("/checkout");
+  };
+
   if (loading) {
     return <div className="text-center mt-20">Đang tải ghế...</div>;
   }
@@ -176,6 +197,7 @@ export default function Seat() {
 
         <button
           disabled={!selectedSeatIds.length}
+          onClick={handleCheckout}
           className="bg-red-600 px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
         >
           Thanh toán

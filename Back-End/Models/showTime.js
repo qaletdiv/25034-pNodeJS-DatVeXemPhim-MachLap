@@ -10,9 +10,19 @@ module.exports = (sequelize, DataTypes) => {
         as: "movie",
       });
 
+      ShowTime.hasMany(models.ShowtimeSeat, {
+        foreignKey: "showtimeId",
+        as: "showtimeseats",
+      });
+
       ShowTime.belongsTo(models.Room, {
         foreignKey: "roomId",
         as: "room",
+      });
+
+      ShowTime.hasMany(models.Order, {
+        foreignKey: "showtimeId",
+        as: "orders",
       });
     }
   }
@@ -27,10 +37,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       startTime: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      endTime: {
         type: DataTypes.DATE,
         allowNull: false,
       },

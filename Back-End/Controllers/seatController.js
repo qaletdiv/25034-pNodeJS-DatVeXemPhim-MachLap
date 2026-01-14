@@ -82,60 +82,6 @@ exports.holdSeat = async (req, res, next) => {
   }
 };
 
-// exports.releaseSeat = async (req, res, next) => {
-//   const t = await sequelize.transaction();
-
-//   try {
-//     const { showtimeSeatId } = req.params;
-//     const userId = req.user.id;
-
-//     // 🔒 chỉ user giữ ghế mới được huỷ
-//     const [affectedRows] = await ShowtimeSeat.update(
-//       {
-//         status: "available",
-//         reservedUntil: null,
-//         reservedBy: null,
-//       },
-//       {
-//         where: {
-//           id: showtimeSeatId,
-//           status: "reserved",
-//           reservedBy: userId,
-//         },
-//         transaction: t,
-//       }
-//     );
-
-//     if (affectedRows === 0) {
-//       await t.rollback();
-//       return res.status(403).json({
-//         message: "Không có quyền huỷ ghế này",
-//       });
-//     }
-
-//     const seat = await ShowtimeSeat.findByPk(showtimeSeatId, {
-//       transaction: t,
-//     });
-
-//     await t.commit();
-
-//     // 🔥 SOCKET EMIT
-//     const io = req.app.get("io");
-//     io.to(`showtime_${seat.showtimeId}`).emit("seat_released", {
-//       showtimeSeatId,
-//       userId,
-//     });
-
-//     res.json({
-//       message: "Huỷ giữ ghế thành công",
-//       showtimeSeatId,
-//     });
-//   } catch (err) {
-//     await t.rollback();
-//     next(err);
-//   }
-// };
-
 exports.releaseSeat = async (req, res) => {
   const { showtimeSeatId } = req.params;
   const userId = req.user.id;

@@ -19,6 +19,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "showtimeSeatId",
         as: "ticket",
       });
+
+      ShowtimeSeat.belongsTo(models.User, {
+        foreignKey: "reservedBy",
+        as: "user",
+      });
     }
   }
 

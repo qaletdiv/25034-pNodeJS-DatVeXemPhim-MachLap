@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import {
   seatReservedRealtime,
   seatReleasedRealtime,
+  seatBookedRealtime,
 } from "../redux/Slices/seatSlice";
 
 export default function useSeatSocket(showtimeId) {
@@ -32,26 +33,23 @@ export default function useSeatSocket(showtimeId) {
     const onReserved = (data) => {
       dispatch(seatReservedRealtime(data));
     };
-    // const onReserved = (data) => {
-    //   const currentUserId = JSON.parse(localStorage.getItem("currentUser")).id;
-    //   dispatch(
-    //     seatReservedRealtime({
-    //       ...data,
-    //       currentUserId,
-    //     })
-    //   );
-    // };
 
     const onReleased = (data) => {
       dispatch(seatReleasedRealtime(data));
     };
 
+    const onBooked = (data) => {
+      dispatch(seatBookedRealtime(data));
+    };
+
     socket.on("seat_reserved", onReserved);
     socket.on("seat_released", onReleased);
+    socket.on("seat_booked", onBooked);
 
     return () => {
       socket.off("seat_reserved", onReserved);
       socket.off("seat_released", onReleased);
+      socket.off("seat_booked", onBooked);
     };
   }, [showtimeId, dispatch]);
 }

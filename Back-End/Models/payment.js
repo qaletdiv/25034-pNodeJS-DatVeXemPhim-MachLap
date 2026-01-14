@@ -5,7 +5,6 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Payment extends Model {
     static associate(models) {
-      // Payment thuộc về Order
       Payment.belongsTo(models.Order, {
         foreignKey: "orderId",
         as: "order",
