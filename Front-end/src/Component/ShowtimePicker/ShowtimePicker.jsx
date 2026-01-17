@@ -48,12 +48,21 @@ const ShowtimePicker = ({ movie }) => {
 
   // Group by theater
   const theaters = useMemo(() => {
-    return showtimesByDate.reduce((acc, st) => {
+    const grouped = showtimesByDate.reduce((acc, st) => {
       const name = st.room?.movietheater?.name || "Không xác định";
       acc[name] = acc[name] || [];
       acc[name].push(st);
       return acc;
     }, {});
+
+    // SORT giờ chiếu trong từng rạp
+    Object.keys(grouped).forEach((key) => {
+      grouped[key].sort(
+        (a, b) => dayjs.utc(a.startTime).tz(TZ) - dayjs.utc(b.startTime).tz(TZ)
+      );
+    });
+
+    return grouped;
   }, [showtimesByDate]);
 
   /* ===== UI ===== */

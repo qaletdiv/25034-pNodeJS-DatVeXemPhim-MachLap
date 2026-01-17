@@ -18,9 +18,10 @@ export default function Seat() {
   const navigate = useNavigate();
   const { showtimeId } = useParams();
 
-  const { seats, selectedSeatIds, loading } = useSelector(
-    (state) => state.seats
-  );
+  const seats = useSelector((state) => state.seats.seats);
+  const selectedSeatIds = useSelector((state) => state.seats.selectedSeatIds);
+
+  const { loading } = useSelector((state) => state.seats);
 
   useEffect(() => {
     dispatch(fetchSeats(showtimeId));
@@ -31,6 +32,27 @@ export default function Seat() {
   const currentShowtime = currentMovie?.showtimes?.find(
     (item) => Number(item.id) == showtimeId
   );
+
+  const theater = currentShowtime?.room?.movietheater?.name;
+
+  function calculateEndTime(startTime, duration) {
+    if (!startTime || !duration) return "";
+
+    // xử lý nếu backend trả "18:30:00"
+    const time = startTime.slice(0, 5);
+
+    const [hours, minutes] = time.split(":").map(Number);
+
+    if (isNaN(hours) || isNaN(minutes)) return "";
+
+    const date = new Date();
+    date.setHours(hours);
+    date.setMinutes(minutes + Number(duration));
+
+    return `${String(date.getHours()).padStart(2, "0")}:${String(
+      date.getMinutes()
+    ).padStart(2, "0")}`;
+  }
 
   const formatTimeHHMM = (timeString) => {
     if (!timeString) return "";
@@ -95,10 +117,9 @@ export default function Seat() {
 
   /* ===== STYLE GHẾ ===== */
   const seatStyle = (seat) => {
-    if (selectedSeatIds.includes(seat.id)) return "bg-green-500 text-white";
-
     if (seat.status === "booked")
       return "bg-gray-600 text-white cursor-not-allowed";
+    if (selectedSeatIds.includes(seat.id)) return "bg-green-500 text-white";
 
     if (seat.status === "reserved") return "bg-gray-400 text-white";
 
@@ -136,10 +157,20 @@ export default function Seat() {
     <div className="max-w-6xl mx-auto p-6 text-white">
       {/* ===== THÔNG TIN SUẤT CHIẾU ===== */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">{currentMovie?.title}</h1>
+        <h1 className="text-3xl font-bold">
+          <span className="text-red-600">RẠP:</span> {theater && theater}
+        </h1>
+        <h3 className="text-3xl font-bold my-2">
+          {" "}
+          <span className="text-red-600">Phim:</span> {currentMovie?.title}
+        </h3>
         <p className="text-gray-400">
           {currentShowtime?.room?.name} • {""}
-          {formatTimeHHMM(currentShowtime?.startTime)}
+          {formatTimeHHMM(currentShowtime?.startTime)} -{" "}
+          {calculateEndTime(
+            formatTimeHHMM(currentShowtime?.startTime),
+            Number(currentMovie?.duration)
+          )}
         </p>
       </div>
 

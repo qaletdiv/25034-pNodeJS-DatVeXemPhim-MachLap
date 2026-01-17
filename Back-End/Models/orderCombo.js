@@ -3,56 +3,55 @@
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class Ticket extends Model {
+  class OrderCombo extends Model {
     static associate(models) {
-      Ticket.belongsTo(models.Order, {
+      OrderCombo.belongsTo(models.Order, {
         foreignKey: "orderId",
         as: "order",
       });
 
-      Ticket.belongsTo(models.ShowtimeSeat, {
-        foreignKey: "showtimeSeatId",
-        as: "showtimeSeat",
+      OrderCombo.belongsTo(models.Combo, {
+        foreignKey: "comboId",
+        as: "combo",
       });
     }
   }
 
-  Ticket.init(
+  OrderCombo.init(
     {
       orderId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      showtimeSeatId: {
+
+      comboId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+
+      quantity: {
+        type: DataTypes.INTEGER,
+        defaultValue: 1,
+      },
+
       price: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
       },
-      status: {
-        type: DataTypes.ENUM("ACTIVE", "CANCELLED", "REFUNDED"),
-        defaultValue: "ACTIVE",
-      },
-      isActive: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: true,
-      },
     },
     {
       sequelize,
-      modelName: "Ticket",
-      tableName: "Tickets",
+      modelName: "OrderCombo",
+      tableName: "OrderCombos",
       timestamps: false,
       indexes: [
         {
           unique: true,
-          fields: ["showtimeSeatId"],
+          fields: ["orderId", "comboId"],
         },
       ],
     }
   );
 
-  return Ticket;
+  return OrderCombo;
 };

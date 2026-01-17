@@ -18,6 +18,7 @@ const movieTheaterRoutes = require("./Routes/movieTheaterRouter");
 const seatRoutes = require("./Routes/seatRouter");
 const ticketRoutes = require("./Routes/ticketRouter");
 const orderRoutes = require("./Routes/orderRouter");
+const comboRoutes = require("./Routes/comboRouter");
 const socketServer = require("./socketServer");
 const orderController = require("../Back-End/Controllers/orderController");
 
@@ -28,14 +29,16 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: process.env.LOCAL_HOST_FE,
     credentials: true,
   },
 });
 
+global.io = io;
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.LOCAL_HOST_FE,
     credentials: true,
   })
 );
@@ -76,6 +79,8 @@ app.use("/api/seats", seatRoutes);
 app.use("/api/orders", orderRoutes);
 
 app.use("/api/my-tickets", ticketRoutes);
+
+app.use("/api/combos", comboRoutes);
 
 app.use("/api", authRoutes);
 

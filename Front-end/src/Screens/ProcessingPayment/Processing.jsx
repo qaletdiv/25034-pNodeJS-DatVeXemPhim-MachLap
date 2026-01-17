@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { axiosClient } from "../../api/axiosClient";
-import styled from "styled-components";
 import "./processing.css";
 import { useDispatch } from "react-redux";
 import { setConfirmPayment } from "../../redux/Slices/orderSlice";
@@ -11,12 +10,16 @@ const Processing = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     const interval = setInterval(async () => {
-      const res = await axiosClient.get("/api/orders/my-latest");
+      try {
+        const res = await axiosClient.get("/api/orders/my-latest");
 
-      if (res.data.status === "paid") {
-        localStorage.removeItem("checkoutData");
-        dispatch(setConfirmPayment(res.data));
-        navigate("/success");
+        if (res.data.status === "paid") {
+          localStorage.removeItem("checkoutData");
+          dispatch(setConfirmPayment(res.data));
+          navigate("/success");
+        }
+      } catch (err) {
+        console.log(err);
       }
     }, 2000);
 
@@ -24,7 +27,7 @@ const Processing = () => {
   }, []);
   return (
     <>
-      <span class="loader top-20">Đang xác thực thanh toán...</span>
+      <span className="loader top-20">Đang xác thực thanh toán...</span>
     </>
   );
 };

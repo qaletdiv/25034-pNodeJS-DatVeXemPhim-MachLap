@@ -82,12 +82,15 @@ const seatSlice = createSlice({
     seatBookedRealtime(state, action) {
       const { showtimeSeatId } = action.payload;
 
-      const seat = state.seats.find((s) => s.id === showtimeSeatId);
-      if (seat) seat.status = "booked";
-
-      state.selectedSeatIds = state.selectedSeatIds.filter(
-        (id) => id !== showtimeSeatId
+      const seat = state.seats.find(
+        (s) => Number(s.id) === Number(showtimeSeatId)
       );
+
+      if (seat) {
+        seat.status = "booked";
+      }
+
+      state.selectedSeatIds = [];
     },
 
     /* ===== LOCAL SELECT (UI ONLY) ===== */

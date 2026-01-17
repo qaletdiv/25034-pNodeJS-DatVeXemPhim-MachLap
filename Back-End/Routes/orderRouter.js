@@ -7,13 +7,21 @@ const { Order } = require("../Models");
 
 router.post("/", authenticateToken, orderController.createOrder);
 
-router.get("/my-latest", authenticateToken, async (req, res) => {
-  const order = await Order.findOne({
-    where: { userId: req.user.id },
-    order: [["createdAt", "DESC"]],
-  });
+router.get("/my-latest", authenticateToken, orderController.getMyOrderLatest);
 
-  res.json(order);
-});
+// router.get("/:id", authenticateToken, async (req, res) => {
+//   const { id } = req.params;
+//   const order = await Order.findOne({
+//     where: { id, userId: req.user.id },
+//   });
+
+//   res.json(order);
+// });
+
+router.post(
+  "/:orderId/cancel",
+  authenticateToken,
+  orderController.cancelTicket
+);
 
 module.exports = router;

@@ -10,26 +10,24 @@ import { axiosClient } from "../../api/axiosClient";
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const stripe = useStripe();
   const elements = useElements();
 
   const checkoutData = JSON.parse(localStorage.getItem("checkoutData"));
 
   const [paymentMethod, setPaymentMethod] = useState("stripe");
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minute
+  const [timeLeft, setTimeLeft] = useState(300);
   const [loading, setLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState(null);
   const [error, setError] = useState("");
 
-  /* ===== CHECK DATA ===== */
-  useEffect(() => {
-    if (!checkoutData) navigate("/");
-  }, []);
+  /* ===== COMBO ===== */
+  const [combos, setCombos] = useState([]);
+  const [selectedCombos, setSelectedCombos] = useState([]);
 
   /* ===== COUNTDOWN ===== */
   useEffect(() => {
-    if (!checkoutData) return;
+    if (!checkoutData) navigate("/");
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -42,8 +40,14 @@ export default function Checkout() {
       });
     }, 1000);
 
+    fetchCombos();
     return () => clearInterval(timer);
-  }, [checkoutData]);
+  }, []);
+
+  const fetchCombos = async () => {
+    const res = await axiosClient.get("/api/combos");
+    setCombos(res.data);
+  };
 
   const handleTimeout = () => {
     alert("Hết thời gian giữ ghế");
@@ -57,13 +61,50 @@ export default function Checkout() {
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  /* ===== TẠO ORDER + PAYMENT INTENT ===== */
-  const createOrder = async () => {
+  /* ===== COMBO LOGIC ===== */
+  const updateCombo = (combo, type) => {
+    setSelectedCombos((prev) => {
+      const found = prev.find((c) => c.id === combo.id);
+
+      if (!found && type === "plus") {
+        return [...prev, { ...combo, qty: 1 }];
+      }
+
+      if (found) {
+        return prev
+          .map((c) =>
+            c.id === combo.id
+              ? {
+                  ...c,
+                  qty: type === "plus" ? c.qty + 1 : c.qty - 1,
+                }
+              : c
+          )
+          .filter((c) => c.qty > 0);
+      }
+
+      return prev;
+    });
+  };
+
+  const comboTotal = selectedCombos.reduce(
+    (sum, c) => sum + c.price * c.qty,
+    0
+  );
+
+  const finalTotal = checkoutData?.totalPrice + comboTotal;
+
+  /* ===== API ===== */
+  const createOrderApi = async () => {
     const res = await axiosClient.post(
       "/api/orders",
       {
         showtimeId: checkoutData.showtimeId,
         seatIds: checkoutData.seatIds,
+        combos: selectedCombos.map((c) => ({
+          comboId: c.id,
+          quantity: c.qty,
+        })),
       },
       { withCredentials: true }
     );
@@ -71,35 +112,22 @@ export default function Checkout() {
     return res.data.clientSecret;
   };
 
-  /* ===== SUBMIT PAYMENT ===== */
+  /* ===== SUBMIT ===== */
   const handlePayment = async () => {
     try {
       setLoading(true);
 
-      // 1. Tạo order trước
       let secret = clientSecret;
-
       if (!secret) {
-        secret = await createOrder();
+        secret = await createOrderApi();
         setClientSecret(secret);
       }
 
-      // if (!clientSecret) {
-      //   dispatch(
-      //     createOrder({
-      //       showtimeId: checkoutData.showtimeId,
-      //       seatIds: checkoutData.seatIds,
-      //     })
-      //   );
-      // }
-
-      // 2. Nếu không phải stripe
       if (paymentMethod !== "stripe") {
-        alert("Chưa tích hợp cổng này");
+        alert("Chưa tích hợp");
         return;
       }
 
-      // 3. Stripe confirm
       const { error, paymentIntent } = await stripe.confirmCardPayment(secret, {
         payment_method: {
           card: elements.getElement(CardElement),
@@ -108,18 +136,13 @@ export default function Checkout() {
 
       if (error) {
         setError(error.message);
-        setLoading(false);
         return;
       }
 
       if (paymentIntent.status === "succeeded") {
-        toast.info("Đang xác nhận thanh toán...", {
-          autoClose: 1500,
-        });
-
-        navigate("/processing"); // trang loading
+        navigate("/processing");
       }
-    } catch (err) {
+    } catch {
       toast.error("Thanh toán thất bại");
     } finally {
       setLoading(false);
@@ -131,68 +154,112 @@ export default function Checkout() {
   return (
     <div className="min-h-screen bg-black text-white p-4">
       <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
-        {/* ===== LEFT ===== */}
-        <div className="md:col-span-2 bg-[#1a1a1a] p-6 rounded-xl">
-          <h2 className="text-xl font-bold mb-4">Thông tin đơn hàng</h2>
+        {/* LEFT */}
+        <div className="md:col-span-2 space-y-6">
+          {/* INFO */}
+          <div className="bg-[#1a1a1a] p-6 rounded-xl">
+            <h2 className="text-xl font-bold mb-4">Thông tin đơn hàng</h2>
 
-          <div className="space-y-2 text-sm">
-            <p>
-              🎬 <b>Phim:</b> {checkoutData.movieTitle}
-            </p>
-            <p>
-              🕒 <b>Suất chiếu:</b> {checkoutData.showtime}
-            </p>
-            <p>
-              💺 <b>Ghế:</b> {checkoutData.seats.join(", ")}
-            </p>
-          </div>
-
-          {/* ===== PAYMENT METHOD ===== */}
-          <div className="mt-6">
-            <h3 className="font-semibold mb-3">Phương thức thanh toán</h3>
-
-            <div className="space-y-3">
-              <PaymentItem
-                value="stripe"
-                label="Thẻ quốc tế (Stripe)"
-                current={paymentMethod}
-                set={setPaymentMethod}
-              />
-              <PaymentItem
-                value="vnpay"
-                label="VNPay"
-                current={paymentMethod}
-                set={setPaymentMethod}
-              />
-              <PaymentItem
-                value="momo"
-                label="Ví MoMo"
-                current={paymentMethod}
-                set={setPaymentMethod}
-              />
+            <div className="space-y-2 text-sm">
+              <p>
+                🎬 <b>Phim:</b> {checkoutData.movieTitle}
+              </p>
+              <p>
+                🕒 <b>Suất:</b> {checkoutData.showtime}
+              </p>
+              <p>
+                💺 <b>Ghế:</b> {checkoutData.seats.join(", ")}
+              </p>
             </div>
           </div>
 
-          {/* ===== CARD INPUT ===== */}
-          {paymentMethod === "stripe" && (
-            <div className="mt-6 bg-white p-4 rounded text-black">
-              <CardElement />
-            </div>
-          )}
+          {/* COMBO */}
+          <div className="bg-[#1a1a1a] p-6 rounded-xl">
+            <h3 className="font-semibold mb-4">🍿 Combo bắp nước</h3>
 
-          {error && <p className="text-red-500 mt-3">{error}</p>}
+            <div className="grid sm:grid-cols-2 gap-4">
+              {combos.map((c) => {
+                const selected = selectedCombos.find((x) => x.id === c.id);
+
+                return (
+                  <div
+                    key={c.id}
+                    className="bg-[#111] rounded-lg p-4 flex gap-4"
+                  >
+                    <img
+                      src={c.image}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{c.name}</h4>
+                      <p className="text-xs text-gray-400">{c.description}</p>
+
+                      <div className="flex justify-between items-center mt-3">
+                        <span className="text-green-400 font-bold">
+                          {parseFloat(c.price).toLocaleString()} ₫
+                        </span>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateCombo(c, "minus")}
+                            className="w-7 h-7 bg-red-500 rounded"
+                          >
+                            -
+                          </button>
+
+                          <span>{selected?.qty || 0}</span>
+
+                          <button
+                            onClick={() => updateCombo(c, "plus")}
+                            className="w-7 h-7 bg-green-500 rounded"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* PAYMENT */}
+          <div className="bg-[#1a1a1a] p-6 rounded-xl">
+            <h3 className="font-semibold mb-3">Thanh toán</h3>
+
+            <PaymentItem
+              value="stripe"
+              label="Thẻ quốc tế"
+              current={paymentMethod}
+              set={setPaymentMethod}
+            />
+
+            {paymentMethod === "stripe" && (
+              <div className="mt-4 bg-white p-3 rounded text-black">
+                <CardElement />
+              </div>
+            )}
+            {error && <p className="text-red-500 mt-3">{error}</p>}
+          </div>
         </div>
 
-        {/* ===== RIGHT ===== */}
+        {/* RIGHT */}
         <div className="bg-[#1a1a1a] p-6 rounded-xl">
-          <h3 className="font-semibold mb-3">Tổng thanh toán</h3>
+          <h3 className="font-semibold mb-4">Tổng tiền</h3>
 
-          <p className="text-3xl font-bold text-green-400">
-            {checkoutData.totalPrice.toLocaleString()} ₫
+          <div className="space-y-2 text-sm">
+            <p>🎟 Vé: {checkoutData.totalPrice.toLocaleString()} ₫</p>
+            <p>🍿 Combo: {comboTotal.toLocaleString()} ₫</p>
+          </div>
+
+          <p className="text-3xl font-bold text-green-400 mt-3">
+            {finalTotal.toLocaleString()} ₫
           </p>
 
           {/* TIMER */}
-          <div className="mt-4">
+          <div className="mt-6">
             <p className="text-gray-400 text-sm">Thời gian giữ ghế</p>
             <p className="text-xl font-bold text-red-500">
               {formatTime(timeLeft)}
@@ -202,10 +269,17 @@ export default function Checkout() {
           <button
             onClick={handlePayment}
             disabled={loading}
-            className="w-full mt-6 bg-red-600 py-3 rounded-lg font-semibold
-              hover:bg-red-700 transition disabled:opacity-50"
+            className="w-full mt-6 bg-red-600 py-3 rounded-lg font-semibold"
           >
-            {loading ? "Đang xử lý..." : "Xác nhận thanh toán"}
+            {loading ? "Đang xử lý..." : "Thanh toán"}
+          </button>
+          <button
+            className="w-full mt-6 bg-slate-600 py-3 rounded-lg font-semibold hover:opacity-55"
+            onClick={() => {
+              navigate(-1);
+            }}
+          >
+            Trở về trang đặt vé
           </button>
         </div>
       </div>
@@ -216,7 +290,7 @@ export default function Checkout() {
 /* ===== COMPONENT ===== */
 function PaymentItem({ value, label, current, set }) {
   return (
-    <label className="flex items-center gap-3 cursor-pointer">
+    <label className="flex items-center gap-3 cursor-pointer mb-2">
       <input
         type="radio"
         value={value}

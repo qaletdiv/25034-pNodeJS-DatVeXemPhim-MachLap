@@ -9,6 +9,8 @@ const {
   Movie,
   Room,
   Seat,
+  OrderCombo,
+  Combo,
 } = require("../Models");
 
 exports.getMyTickets = async (req, res) => {
@@ -20,7 +22,7 @@ exports.getMyTickets = async (req, res) => {
         {
           model: Order,
           as: "order",
-          where: { userId: { [Op.eq]: userId } },
+          where: { userId },
           include: [
             {
               model: ShowTime,
@@ -31,6 +33,17 @@ exports.getMyTickets = async (req, res) => {
                   model: Room,
                   as: "room",
                   include: [{ model: MovieTheater, as: "movietheater" }],
+                },
+              ],
+            },
+            // 👉 LẤY COMBO
+            {
+              model: OrderCombo,
+              as: "orderCombos",
+              include: [
+                {
+                  model: Combo,
+                  as: "combo",
                 },
               ],
             },

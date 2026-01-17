@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 
@@ -58,12 +58,12 @@ const Header = () => {
           </div>
           {/* MENU */}
           <nav className="hidden lg:flex space-x-6 text-sm font-medium">
-            <a href="#" className="hover:text-red-500">
+            <Link to={"/"} className="hover:text-red-500">
               Phim
-            </a>
-            <a href="#" className="hover:text-red-500">
-              Rạp / Giá vé
-            </a>
+            </Link>
+            <Link to={"/my-ticket"} className="hover:text-red-500">
+              Vé của tôi
+            </Link>
             <a href="#" className="hover:text-red-500">
               Tin tức
             </a>

@@ -24,6 +24,17 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "orderId",
         as: "payment",
       });
+
+      Order.belongsToMany(models.Combo, {
+        through: models.OrderCombo,
+        foreignKey: "orderId",
+        as: "combos",
+      });
+
+      Order.hasMany(models.OrderCombo, {
+        foreignKey: "orderId",
+        as: "orderCombos",
+      });
     }
   }
 

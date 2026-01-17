@@ -15,13 +15,16 @@ import Seat from "./screens/Seat/Seat";
 import ProtectedRoute from "./component/ProtectedRouter/ProtectedRouter";
 import Checkout from "./screens/Checkout/Checkout";
 import Processing from "./screens/ProcessingPayment/Processing";
-import ConfirmPayment from "./screens/ConfirmPayment/ConfirmPayment";
+import ScrollToTop from "./component/ScrollToTop/ScrollToTop";
+import PaymentSuccess from "./screens/PaymentSuccess/PaymentSuccess";
+import MyTickets from "./screens/MyTicket/MyTicket";
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <ToastContainer position="top-right" autoClose={2000} />
+        <ScrollToTop />
         <Routes>
           <Route
             path="/seats/:showtimeId"
@@ -41,11 +44,26 @@ function App() {
           ></Route>
           <Route path="/login" element={<Login />}></Route>
           <Route path="/processing" element={<Processing />}></Route>
-          <Route path="/success" element={<ConfirmPayment />}></Route>
+          <Route
+            path="/success"
+            element={
+              <ProtectedRoute>
+                <PaymentSuccess />
+              </ProtectedRoute>
+            }
+          ></Route>
           <Route path="/register" element={<Register />}></Route>
           <Route path="/" element={<CommonPage />}>
             <Route path="home" element={<Home />}></Route>
             <Route path="movie/:id" element={<MovieDetail />}></Route>
+            <Route
+              path="my-ticket"
+              element={
+                <ProtectedRoute>
+                  <MyTickets />
+                </ProtectedRoute>
+              }
+            ></Route>
           </Route>
         </Routes>
       </BrowserRouter>

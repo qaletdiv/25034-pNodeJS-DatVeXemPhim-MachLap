@@ -6,6 +6,12 @@ const {
   sequelize,
   ShowTime,
   Payment,
+  Combo,
+  OrderCombo,
+  Movie,
+  Room,
+  MovieTheater,
+  Seat,
 } = require("../Models");
 const stripe = require("../config/stripe");
 // exports.createOrder = async (req, res, next) => {
@@ -110,7 +116,7 @@ exports.createOrder = async (req, res, next) => {
 
   try {
     const userId = req.user.id;
-    const { showtimeId, seatIds } = req.body;
+    const { showtimeId, seatIds, combos = [] } = req.body;
 
     if (!seatIds?.length) {
       return res.status(400).json({ message: "Chưa chọn ghế" });
@@ -136,7 +142,7 @@ exports.createOrder = async (req, res, next) => {
       });
     }
 
-    /* 2. Tính tiền */
+    /* 2. Tính tiền vé */
     const curShowtime = await ShowTime.findOne({
       where: { id: Number(showtimeId) },
     });
@@ -144,27 +150,76 @@ exports.createOrder = async (req, res, next) => {
       await t.rollback();
       return res.status(404).json({ message: "Showtime không tồn tại" });
     }
+
     const basePrice = curShowtime.price;
 
-    const totalAmount = seats.reduce((sum, s) => {
+    const ticketTotal = seats.reduce((sum, s) => {
       if (s.seat?.type === "vip") return sum + 120000;
       if (s.seat?.type === "couple") return sum + 200000;
       return sum + Number(basePrice);
     }, 0);
 
-    /* 3. create order */
+    /* 3. Tính tiền combo */
+    let comboTotal = 0;
+
+    if (combos.length) {
+      const comboIds = combos.map((c) => c.comboId);
+
+      const dbCombos = await Combo.findAll({
+        where: { id: comboIds },
+        transaction: t,
+      });
+
+      for (const c of combos) {
+        const found = dbCombos.find((x) => x.id === c.comboId);
+        if (!found) {
+          await t.rollback();
+          return res.status(404).json({
+            message: `Combo ${c.comboId} không tồn tại`,
+          });
+        }
+
+        comboTotal += found.price * c.quantity;
+      }
+    }
+
+    const totalAmount = ticketTotal + comboTotal;
+
+    /* 4. create order */
     const order = await Order.create(
       {
         userId,
         showtimeId,
         totalAmount,
         status: "pending",
-        expiredAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minute
+        expiredAt: new Date(Date.now() + 5 * 60 * 1000),
       },
       { transaction: t }
     );
 
-    /* 4. create payment pending */
+    /* 5. insert OrderCombos */
+    if (combos.length) {
+      const dbCombos = await Combo.findAll({
+        where: { id: combos.map((c) => c.comboId) },
+        transaction: t,
+      });
+
+      for (const c of combos) {
+        const found = dbCombos.find((x) => x.id === c.comboId);
+
+        await OrderCombo.create(
+          {
+            orderId: order.id,
+            comboId: found.id,
+            quantity: c.quantity,
+            price: found.price,
+          },
+          { transaction: t }
+        );
+      }
+    }
+
+    /* 6. create payment */
     await Payment.create(
       {
         orderId: order.id,
@@ -175,9 +230,9 @@ exports.createOrder = async (req, res, next) => {
       { transaction: t }
     );
 
-    /* 5. Stripe PaymentIntent */
+    /* 7. Stripe */
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round((totalAmount / 24000) * 100), // convert to USD cent
+      amount: Math.round((totalAmount / 24000) * 100),
       currency: "usd",
       metadata: {
         orderId: order.id,
@@ -191,9 +246,7 @@ exports.createOrder = async (req, res, next) => {
       clientSecret: paymentIntent.client_secret,
     });
   } catch (err) {
-    if (!t.finished) {
-      await t.rollback();
-    }
+    if (!t.finished) await t.rollback();
     next(err);
   }
 };
@@ -213,7 +266,7 @@ exports.stripeWebhook = async (req, res) => {
     return res.status(400).send("Webhook Error");
   }
 
-  if (event.type === "charge.succeeded" || event.type === "charge.updated") {
+  if (event.type === "payment_intent.succeeded") {
     const charge = event.data.object;
 
     console.log("CHARGE STATUS:", charge.status);
@@ -282,6 +335,19 @@ const handlePaymentSuccess = async (orderId, transactionCode, amount) => {
       return;
     }
 
+    /* ===== 4. CHECK TICKET EXIST ===== */
+    const existedTicket = await Ticket.findOne({
+      where: { orderId },
+      transaction: t,
+      lock: t.LOCK.UPDATE,
+    });
+
+    if (existedTicket) {
+      console.log("TICKET EXISTED → SKIP");
+      await t.rollback();
+      return;
+    }
+
     /* 1. Update payment */
     await payment.update(
       {
@@ -341,13 +407,194 @@ const handlePaymentSuccess = async (orderId, transactionCode, amount) => {
       };
     });
 
-    await Ticket.bulkCreate(ticketData, {
-      transaction: t,
-    });
+    // await Ticket.bulkCreate(ticketData, {
+    //   transaction: t,
+    // });
+
+    await Ticket.bulkCreate(
+      ticketData.map((tk) => ({
+        ...tk,
+        status: "ACTIVE",
+        isActive: 1,
+      })),
+      { transaction: t }
+    );
 
     await t.commit();
+
+    /* ===== SOCKET REALTIME ===== */
+    const io = global.io || require("../server").io;
+
+    seats.forEach((s) => {
+      io.to(`showtime_${order.showtimeId}`).emit("seat_booked", {
+        showtimeSeatId: s.id,
+      });
+    });
   } catch (err) {
     await t.rollback();
     console.error("Webhook error:", err.message);
+  }
+};
+
+exports.cancelTicket = async (req, res) => {
+  const t = await sequelize.transaction();
+
+  try {
+    const userId = req.user.id;
+    const { orderId } = req.params;
+
+    const order = await Order.findOne({
+      where: { id: orderId, userId },
+      include: [
+        {
+          model: ShowTime,
+          as: "showtime",
+        },
+      ],
+      transaction: t,
+      lock: t.LOCK.UPDATE,
+    });
+
+    if (!order) {
+      await t.rollback();
+      return res.status(404).json({
+        message: "Đơn hàng không tồn tại",
+      });
+    }
+
+    if (order.status !== "paid") {
+      await t.rollback();
+      return res.status(400).json({
+        message: "Chỉ được hủy vé đã thanh toán",
+      });
+    }
+
+    /* ===== CHECK TIME ===== */
+    const now = new Date();
+    const showtime = new Date(order.showtime.startTime);
+
+    const diffMinutes = (showtime.getTime() - now.getTime()) / 1000 / 60;
+
+    if (diffMinutes <= 60) {
+      await t.rollback();
+      return res.status(400).json({
+        message: "Không thể hủy khi sắp tới giờ chiếu",
+      });
+    }
+
+    /* ===== LẤY TICKET ===== */
+    const tickets = await Ticket.findAll({
+      where: { orderId },
+      transaction: t,
+      lock: t.LOCK.UPDATE,
+    });
+
+    const showtimeSeatIds = tickets.map((t) => t.showtimeSeatId);
+
+    /* ===== MỞ GHẾ ===== */
+    await ShowtimeSeat.update(
+      {
+        status: "available",
+        reservedBy: null,
+        reservedUntil: null,
+      },
+      {
+        where: { id: showtimeSeatIds },
+        transaction: t,
+      }
+    );
+
+    /* ===== XÓA TICKET (QUAN TRỌNG) ===== */
+    // await Ticket.destroy({
+    //   where: { orderId },
+    //   transaction: t,
+    // });
+
+    await Ticket.update(
+      {
+        status: "CANCELLED",
+        isActive: 0,
+      },
+      {
+        where: { orderId },
+        transaction: t,
+      }
+    );
+
+    /* ===== UPDATE ORDER ===== */
+    await order.update({ status: "cancelled" }, { transaction: t });
+
+    await t.commit();
+
+    /* ===== SOCKET REALTIME ===== */
+    const io = global.io || require("../server").io;
+
+    showtimeSeatIds.forEach((id) => {
+      io.to(`showtime_${order.showtimeId}`).emit("seat_released", {
+        showtimeSeatId: id,
+      });
+    });
+
+    res.json({
+      message: "Hủy vé thành công",
+    });
+  } catch (err) {
+    await t.rollback();
+    console.error(err);
+    res.status(500).json({
+      message: "Hủy vé thất bại",
+    });
+  }
+};
+
+exports.getMyOrderLatest = async (req, res) => {
+  try {
+    const order = await Order.findOne({
+      where: { userId: req.user.id },
+      order: [["createdAt", "DESC"]],
+
+      include: [
+        // SHOWTIME
+        {
+          model: ShowTime,
+          as: "showtime",
+          include: [
+            { model: Movie, as: "movie" },
+            {
+              model: Room,
+              as: "room",
+              include: [{ model: MovieTheater, as: "movietheater" }],
+            },
+          ],
+        },
+
+        // COMBO
+        {
+          model: OrderCombo,
+          as: "orderCombos",
+          include: [{ model: Combo, as: "combo" }],
+        },
+
+        // GHẾ - ĐI QUA TICKET
+        {
+          model: Ticket,
+          as: "tickets",
+          where: { isActive: 1 },
+          required: false,
+          include: [
+            {
+              model: ShowtimeSeat,
+              as: "showtimeSeat",
+              include: [{ model: Seat, as: "seat" }],
+            },
+          ],
+        },
+      ],
+    });
+
+    res.status(200).json(order);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err.message);
   }
 };

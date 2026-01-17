@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { setFilter } from "../../redux/Slices/filterSlice";
 import { fetchCategory } from "../../redux/Slices/categorySlice";
 import { fetchTheater } from "../../redux/Slices/movieTheaterSlice";
-import Icon from "../Icon/Icon";
+import Icon from "../IconMenuDropdown/Icon";
 
 const Filter = () => {
   const dispatch = useDispatch();

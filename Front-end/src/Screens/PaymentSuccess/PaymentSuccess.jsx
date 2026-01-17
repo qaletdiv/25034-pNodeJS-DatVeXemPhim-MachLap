@@ -1,11 +1,23 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { CheckCircle } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import QRCode from "react-qr-code";
+import { useNavigate } from "react-router-dom";
+import { clearSelectedSeats } from "../../redux/Slices/seatSlice";
 
-const confirmPayment = () => {
+const PaymentSuccess = () => {
   const paymentData = useSelector((state) => state.orders.confirmPayment);
+  console.log(paymentData, "tesstttttt");
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const name = JSON.parse(localStorage.getItem("currentUser")).name;
+  const seatName = paymentData?.tickets?.map(
+    (item) => item.showtimeSeat.seat.seatNumber
+  );
+  useEffect(() => {
+    dispatch(clearSelectedSeats());
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-blue-100 p-4">
@@ -27,11 +39,27 @@ const confirmPayment = () => {
         {/* Info */}
         <div className="mt-6 space-y-3 text-sm md:text-base">
           <div className="flex justify-center">
-            <QRCode value={paymentData.id} size={80} />
+            <QRCode value={`ORDER-${paymentData.id}`} size={80} />
           </div>
 
           <InfoRow label="Mã đơn hàng" value={`#${paymentData.id}`} />
-          <InfoRow label="Showtime ID" value={paymentData.showtimeId} />
+          <InfoRow
+            label="Tên phim"
+            value={paymentData?.showtime?.movie?.title}
+          />
+          <InfoRow
+            label="Tên Rạp - Phòng"
+            value={
+              paymentData?.showtime?.room?.movietheater?.name +
+              " - " +
+              paymentData?.showtime?.room?.name
+            }
+          />
+          <InfoRow label="Số ghế" value={seatName + " "} />
+          <InfoRow
+            label="Giờ chiếu"
+            value={paymentData?.showtime?.startTime?.substring(11, 16)}
+          />
           <InfoRow label="Khách hàng" value={name} />
           <InfoRow
             label="Trạng thái"
@@ -55,7 +83,9 @@ const confirmPayment = () => {
         <div className="mt-8">
           <button
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
-            onClick={() => (window.location.href = "/")}
+            onClick={() => {
+              navigate("/");
+            }}
           >
             Quay về trang chủ
           </button>
@@ -74,4 +104,4 @@ function InfoRow({ label, value }) {
   );
 }
 
-export default confirmPayment;
+export default PaymentSuccess;
