@@ -46,6 +46,7 @@ exports.facebookLogin = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (err) {
@@ -88,12 +89,13 @@ exports.googleLogin = async (req, res) => {
         role: user.role,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     res.status(200).json({
       user,
       accessToken,
+      role: user.role,
     });
   } catch (err) {
     console.error(err);

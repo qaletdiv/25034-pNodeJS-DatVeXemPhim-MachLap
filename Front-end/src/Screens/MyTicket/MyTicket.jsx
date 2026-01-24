@@ -43,7 +43,7 @@ export default function MyTickets() {
     await axiosClient.post(
       `/api/orders/${cancelOrderId}/cancel`,
       {},
-      { withCredentials: true }
+      { withCredentials: true },
     );
 
     setOpenModal(false);
@@ -70,6 +70,7 @@ export default function MyTickets() {
         <div className="space-y-5">
           {tickets.map((t) => {
             const showtime = t.order.showtime;
+            console.log("showTimeeeeeeeeee ", t);
 
             return (
               <div
@@ -120,6 +121,15 @@ export default function MyTickets() {
                   </p>
 
                   <p>💺 Ghế: {t.showtimeSeat.seat.seatNumber}</p>
+
+                  <p>
+                    🍿 Combo:{" "}
+                    {t.order.orderCombos.length > 0
+                      ? t.order.orderCombos
+                          .map((item) => item.combo.description)
+                          .join(", ")
+                      : "không"}
+                  </p>
 
                   <p className="text-green-400 font-semibold">
                     {Number(t.price).toLocaleString()} ₫

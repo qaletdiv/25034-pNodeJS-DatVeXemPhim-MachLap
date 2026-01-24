@@ -3,6 +3,8 @@ const router = express.Router();
 const { Op } = require("sequelize");
 
 const handleValidateErrors = require("../Middlewares/handleValidate");
+const authenticateToken = require("../Middlewares/authenticateToken");
+const authorizeRole = require("../Middlewares/authorizeRole");
 const {
   getMovieValidationRules,
   getDetailMovieValidationRules,
@@ -13,21 +15,28 @@ router.get(
   "/",
   getMovieValidationRules(),
   handleValidateErrors,
-  movieController.getAllMovie
+  movieController.getAllMovie,
+);
+
+router.get(
+  "/get-movies-admin",
+  authenticateToken,
+  authorizeRole("admin"),
+  movieController.getAvailableMovies,
 );
 
 router.get(
   "/:id",
   getDetailMovieValidationRules(),
   handleValidateErrors,
-  movieController.getDetailMovie
+  movieController.getDetailMovie,
 );
 
 router.post(
   "/",
   // createCourseValidationRules(),
   // handleValidateErrors,
-  movieController.createMovie
+  movieController.createMovie,
 );
 
 // router.put("/:id",

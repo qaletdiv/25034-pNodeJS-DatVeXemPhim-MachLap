@@ -129,11 +129,43 @@ exports.getDetailMovie = async (req, res, next) => {
   }
 };
 
+exports.getMovieCarousel = async (req, res, next) => {
+  try {
+    const film = await Movie.findAll({
+      limit: 3,
+      order: [["release_date", "DESC"]],
+    });
+    res.status(200).json(film);
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.createMovie = async (req, res, next) => {
   try {
     const newFilm = await Movie.create(req.body);
     res.status(201).json(newFilm);
   } catch (err) {
+    next(err);
+  }
+};
+
+exports.getAvailableMovies = async (req, res, next) => {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+
+    const movies = await Movie.findAll({
+      where: {
+        release_date: {
+          [Op.lte]: today, // <= hôm nay
+        },
+      },
+      order: [["release_date", "DESC"]],
+    });
+
+    res.json(movies);
+  } catch (err) {
+    console.error(err);
     next(err);
   }
 };

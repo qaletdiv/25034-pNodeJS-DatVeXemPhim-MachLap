@@ -36,7 +36,7 @@ exports.getMyTickets = async (req, res) => {
                 },
               ],
             },
-            // 👉 LẤY COMBO
+            // LẤY COMBO
             {
               model: OrderCombo,
               as: "orderCombos",

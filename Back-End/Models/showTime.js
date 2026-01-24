@@ -40,6 +40,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         allowNull: false,
       },
+      endTime: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
       price: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
@@ -50,7 +54,7 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "ShowTime",
       tableName: "Showtimes",
       timestamps: false,
-    }
+    },
   );
 
   return ShowTime;

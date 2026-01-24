@@ -18,6 +18,8 @@ const movieTheaterRoutes = require("./Routes/movieTheaterRouter");
 const seatRoutes = require("./Routes/seatRouter");
 const ticketRoutes = require("./Routes/ticketRouter");
 const orderRoutes = require("./Routes/orderRouter");
+const adminRoutes = require("./Routes/adminRouter");
+const showtimeRoutes = require("./Routes/showtimeRouter");
 const comboRoutes = require("./Routes/comboRouter");
 const socketServer = require("./socketServer");
 const orderController = require("../Back-End/Controllers/orderController");
@@ -40,7 +42,7 @@ app.use(
   cors({
     origin: process.env.LOCAL_HOST_FE,
     credentials: true,
-  })
+  }),
 );
 
 // set io in app
@@ -64,7 +66,7 @@ app.use(requestLoggerMiddleWare);
 app.post(
   "/api/orders/webhook",
   express.raw({ type: "application/json" }),
-  orderController.stripeWebhook
+  orderController.stripeWebhook,
 );
 app.use(express.json()); // is middleware using to parse data of body in format JSON
 
@@ -81,6 +83,10 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/my-tickets", ticketRoutes);
 
 app.use("/api/combos", comboRoutes);
+
+app.use("/api/admin", adminRoutes);
+
+app.use("/api/showtimes", showtimeRoutes);
 
 app.use("/api", authRoutes);
 

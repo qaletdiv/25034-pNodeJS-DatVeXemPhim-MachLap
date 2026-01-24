@@ -18,6 +18,11 @@ import Processing from "./screens/ProcessingPayment/Processing";
 import ScrollToTop from "./component/ScrollToTop/ScrollToTop";
 import PaymentSuccess from "./screens/PaymentSuccess/PaymentSuccess";
 import MyTickets from "./screens/MyTicket/MyTicket";
+import Admin from "./screens/Admin/Admin";
+import NotFound from "./screens/NotFound/NotFound";
+import ProtectedAdmin from "./component/ProtectedAdmin/ProtectedAdmin";
+import DataAdmin from "./component/DataAdmin/DataAdmin";
+import Showtime from "./screens/Showtime/Showtime";
 
 function App() {
   return (
@@ -43,6 +48,17 @@ function App() {
             }
           ></Route>
           <Route path="/login" element={<Login />}></Route>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedAdmin>
+                <Admin />
+              </ProtectedAdmin>
+            }
+          >
+            <Route path="" element={<DataAdmin />}></Route>
+            <Route path="showtime" element={<Showtime />}></Route>
+          </Route>
           <Route path="/processing" element={<Processing />}></Route>
           <Route
             path="/success"
@@ -65,6 +81,7 @@ function App() {
               }
             ></Route>
           </Route>
+          <Route path="*" element={<NotFound />}></Route>
         </Routes>
       </BrowserRouter>
     </>

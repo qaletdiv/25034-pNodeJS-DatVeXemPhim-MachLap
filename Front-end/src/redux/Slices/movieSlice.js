@@ -6,9 +6,16 @@ export const fetchMovie = createAsyncThunk(
   async (params = {}) => {
     const response = await axiosClient.get("/api/movie", { params });
     return response.data;
-  }
+  },
 );
 
+export const fetchMovieAdmin = createAsyncThunk(
+  "movies/fetchMovieAdmin",
+  async () => {
+    const response = await axiosClient.get("/api/movie/get-movies-admin");
+    return response.data;
+  },
+);
 // export const addProduct = createAsyncThunk(
 //   "products/addProduct",
 //   async ({ name, img, listImg, categoriesId, description, price, brand }) => {
@@ -68,10 +75,11 @@ export const fetchMovieById = createAsyncThunk(
   async (id) => {
     const response = await axiosClient.get(`/api/movie/${id}`);
     return response.data;
-  }
+  },
 );
 
 const initialState = {
+  list: [],
   movies: [],
   loading: false,
   success: false,
@@ -106,6 +114,18 @@ const movieSlice = createSlice({
         state.movies = action.payload;
       })
       .addCase(fetchMovie.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(fetchMovieAdmin.pending, (state, action) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMovieAdmin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.list = action.payload;
+      })
+      .addCase(fetchMovieAdmin.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       })

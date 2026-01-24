@@ -35,8 +35,6 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("Email", emailOrPhone);
-    console.log("pass", password);
 
     if (validate()) {
       const data = await dispatch(login({ emailOrPhone, password }));
@@ -85,7 +83,7 @@ const Login = () => {
       (response) => {
         handleFacebookResponse(response);
       },
-      { scope: "public_profile" }
+      { scope: "public_profile" },
     );
   };
 
@@ -187,7 +185,7 @@ const Login = () => {
             <GoogleLogin
               onSuccess={async (credentialResponse) => {
                 const result = await dispatch(
-                  googleLogin(credentialResponse.credential)
+                  googleLogin(credentialResponse.credential),
                 );
 
                 if (googleLogin.fulfilled.match(result)) {
