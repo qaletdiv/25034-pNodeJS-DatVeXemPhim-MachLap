@@ -1,12 +1,12 @@
 // Controllers/ticketController.js
 const { Op } = require("sequelize");
-const { ComboMeal } = require("../Models");
+const { Coupon } = require("../Models");
 
-exports.getCombo = async (req, res) => {
+exports.getCoupon = async (req, res) => {
   try {
-    const combos = await ComboMeal.findAll();
+    const coupons = await Coupon.findAll();
 
-    res.status(200).json(combos);
+    res.status(200).json(coupons);
   } catch (err) {
     console.error(err);
     res.status(500).json(err.message);

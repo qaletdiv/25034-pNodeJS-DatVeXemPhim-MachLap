@@ -14,7 +14,7 @@ const Home = () => {
 
   const queryParams = useMemo(
     () => ({ status, ...filters }),
-    [status, filters]
+    [status, filters],
   );
 
   useEffect(() => {

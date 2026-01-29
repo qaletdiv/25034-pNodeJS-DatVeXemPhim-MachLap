@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { setFilter } from "../../redux/Slices/filterSlice";
 import { fetchCategory } from "../../redux/Slices/categorySlice";
 import { fetchTheater } from "../../redux/Slices/movieTheaterSlice";
-import Icon from "../IconMenuDropdown/Icon";
+import Icon from "../Icon/IconMenuDropdown";
 
 const Filter = () => {
   const dispatch = useDispatch();
@@ -25,8 +25,8 @@ const Filter = () => {
               const value = e.target.value;
               dispatch(
                 setFilter(
-                  value ? { category: Number(value) } : { category: null }
-                )
+                  value ? { category: Number(value) } : { category: null },
+                ),
               );
             }}
             className="appearance-none w-full
@@ -69,7 +69,7 @@ const Filter = () => {
             onChange={(e) => {
               const value = e.target.value;
               dispatch(
-                setFilter(value ? { theater: value } : { theater: null })
+                setFilter(value ? { theater: value } : { theater: null }),
               );
             }}
             className="appearance-none w-full

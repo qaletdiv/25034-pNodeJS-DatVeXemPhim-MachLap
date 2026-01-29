@@ -32,6 +32,21 @@ export const createShowtime = createAsyncThunk(
   },
 );
 
+export const updateShowtime = createAsyncThunk(
+  "showtime/update",
+  async ({ id, roomId, startTime }, { rejectWithValue }) => {
+    try {
+      const res = await axiosClient.put(`/api/showtimes/${id}`, {
+        roomId,
+        startTime,
+      });
+      return res.data;
+    } catch (e) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
 const slice = createSlice({
   name: "showtime",
   initialState: {
@@ -46,6 +61,7 @@ const slice = createSlice({
     })
       .addCase(fetchGrid.fulfilled, (s, a) => {
         s.loading = false;
+        s.error = null;
         s.grid = a.payload;
       })
       .addCase(fetchGrid.rejected, (s, a) => {
@@ -55,7 +71,8 @@ const slice = createSlice({
       .addCase(fetchTheaters.fulfilled, (s, a) => {
         s.theaters = a.payload;
       })
-      .addCase(createShowtime.fulfilled, (s) => {});
+      .addCase(createShowtime.fulfilled, (s) => {})
+      .addCase(updateShowtime.fulfilled, (s) => {});
   },
 });
 

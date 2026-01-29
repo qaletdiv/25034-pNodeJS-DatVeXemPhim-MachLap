@@ -132,8 +132,14 @@ exports.getDetailMovie = async (req, res, next) => {
 exports.getMovieCarousel = async (req, res, next) => {
   try {
     const film = await Movie.findAll({
+      include: [
+        {
+          model: ShowTime,
+          as: "showtimes",
+          required: true,
+        },
+      ],
       limit: 3,
-      order: [["release_date", "DESC"]],
     });
     res.status(200).json(film);
   } catch (err) {

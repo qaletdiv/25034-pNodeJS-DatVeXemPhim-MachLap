@@ -18,6 +18,8 @@ router.get(
   movieController.getAllMovie,
 );
 
+router.get("/carousel", movieController.getMovieCarousel);
+
 router.get(
   "/get-movies-admin",
   authenticateToken,

@@ -14,7 +14,9 @@ const Chart = ({ chartData }) => {
         <LineChart data={chartData}>
           <XAxis dataKey="date" />
           <YAxis />
-          <Tooltip />
+          <Tooltip
+            formatter={(value) => Number(value).toLocaleString("vi-VN") + "đ"}
+          />
           <Line dataKey="total" />
         </LineChart>
       </ResponsiveContainer>

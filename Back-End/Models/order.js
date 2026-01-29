@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
         as: "payment",
       });
 
-      Order.belongsToMany(models.Combo, {
+      Order.belongsToMany(models.ComboMeal, {
         through: models.OrderCombo,
         foreignKey: "orderId",
         as: "combos",
@@ -34,6 +34,11 @@ module.exports = (sequelize, DataTypes) => {
       Order.hasMany(models.OrderCombo, {
         foreignKey: "orderId",
         as: "orderCombos",
+      });
+
+      Order.belongsTo(models.Coupon, {
+        foreignKey: "couponId",
+        as: "coupon",
       });
     }
   }
@@ -48,12 +53,16 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      couponId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
       totalAmount: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
       },
       status: {
-        type: DataTypes.ENUM("pending", "paid", "cancelled"),
+        type: DataTypes.ENUM("pending", "paid", "cancelled", "refunded"),
         allowNull: false,
         defaultValue: "pending",
       },
@@ -75,8 +84,11 @@ module.exports = (sequelize, DataTypes) => {
         {
           fields: ["status"],
         },
+        {
+          fields: ["showtimeId"],
+        },
       ],
-    }
+    },
   );
 
   return Order;

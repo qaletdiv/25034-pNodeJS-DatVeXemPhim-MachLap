@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import dayjs from "dayjs";
 
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useDispatch } from "react-redux";
@@ -20,10 +21,18 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState(null);
   const [error, setError] = useState("");
+  const [couponData, setCouponData] = useState(null);
+
+  // Tổng tiền
+  const [finalTotal, setFinalTotal] = useState(checkoutData?.totalPrice || 0);
 
   /* ===== COMBO ===== */
   const [combos, setCombos] = useState([]);
   const [selectedCombos, setSelectedCombos] = useState([]);
+
+  /* ===== VOUCHER COUPON===== */
+  const [coupons, setCoupons] = useState([]);
+  const [selectCoupon, setSelectCoupon] = useState("");
 
   /* ===== COUNTDOWN ===== */
   useEffect(() => {
@@ -41,12 +50,18 @@ export default function Checkout() {
     }, 1000);
 
     fetchCombos();
+    fetchCoupons();
     return () => clearInterval(timer);
   }, []);
 
   const fetchCombos = async () => {
     const res = await axiosClient.get("/api/combos");
     setCombos(res.data);
+  };
+
+  const fetchCoupons = async () => {
+    const res = await axiosClient.get("/api/coupons");
+    setCoupons(res.data);
   };
 
   const handleTimeout = () => {
@@ -78,7 +93,7 @@ export default function Checkout() {
                   ...c,
                   qty: type === "plus" ? c.qty + 1 : c.qty - 1,
                 }
-              : c
+              : c,
           )
           .filter((c) => c.qty > 0);
       }
@@ -89,10 +104,21 @@ export default function Checkout() {
 
   const comboTotal = selectedCombos.reduce(
     (sum, c) => sum + c.price * c.qty,
-    0
+    0,
   );
 
-  const finalTotal = checkoutData?.totalPrice + comboTotal;
+  useEffect(() => {
+    setFinalTotal(checkoutData?.totalPrice + comboTotal);
+  }, [comboTotal]);
+
+  // const coupon = coupons.find((item) => item.codeName === selectCoupon);
+
+  // const finalTotal = checkoutData?.totalPrice + comboTotal;
+  // let finalTotal = checkoutData?.totalPrice + comboTotal;
+  // if (coupon) {
+  // } else {
+  //   finalTotal = checkoutData?.totalPrice + comboTotal;
+  // }
 
   /* ===== API ===== */
   const createOrderApi = async () => {
@@ -105,11 +131,45 @@ export default function Checkout() {
           comboId: c.id,
           quantity: c.qty,
         })),
+        coupon: selectCoupon,
       },
-      { withCredentials: true }
+      { withCredentials: true },
     );
 
     return res.data.clientSecret;
+  };
+
+  const handleCoupon = () => {
+    const today = dayjs().format("YYYY-MM-DD");
+    const coupon = coupons.find((item) => item.codeName === selectCoupon);
+
+    if (!coupon) {
+      toast.error("Mã này không tồn tại !!!");
+      setSelectCoupon("");
+      return;
+    }
+
+    if (today < coupon.startDate || today > coupon.endDate) {
+      toast.error("Mã này đã hết hạn sử dụng !!!");
+      setSelectCoupon("");
+      return;
+    }
+    let total = checkoutData?.totalPrice + comboTotal;
+
+    if (coupon.type === "percent") {
+      total = total - (total * coupon.value) / 100;
+      setCouponData(coupon.value + " %");
+    }
+
+    if (coupon.type === "fixed") {
+      total = total - coupon?.value;
+      setCouponData(coupon.value + " ₫");
+    }
+
+    if (total < 0) total = 0;
+
+    setFinalTotal(total);
+    toast.success("Áp dụng mã giảm giá thành công 🎉");
   };
 
   /* ===== SUBMIT ===== */
@@ -252,6 +312,7 @@ export default function Checkout() {
           <div className="space-y-2 text-sm">
             <p>🎟 Vé: {checkoutData.totalPrice.toLocaleString()} ₫</p>
             <p>🍿 Combo: {comboTotal.toLocaleString()} ₫</p>
+            {couponData && <p>🏷️ Giảm: {couponData}</p>}
           </div>
 
           <p className="text-3xl font-bold text-green-400 mt-3">
@@ -264,6 +325,22 @@ export default function Checkout() {
             <p className="text-xl font-bold text-red-500">
               {formatTime(timeLeft)}
             </p>
+          </div>
+          <div className="mt-6 mb-6 flex">
+            <input
+              className="px-2 py-3 rounded-lg text-black"
+              placeholder="Nhập mã giảm giá"
+              onChange={(e) => {
+                setSelectCoupon(e.target.value);
+              }}
+              value={selectCoupon}
+            ></input>
+            <button
+              className="ml-3 bg-red-600 text-white py-3 px-3 rounded-md font-semibold hover:opacity-55"
+              onClick={handleCoupon}
+            >
+              Nhập mã
+            </button>
           </div>
 
           <button

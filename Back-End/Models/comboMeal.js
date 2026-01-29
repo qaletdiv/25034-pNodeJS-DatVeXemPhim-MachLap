@@ -3,22 +3,22 @@
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class Combo extends Model {
+  class ComboMeal extends Model {
     static associate(models) {
-      Combo.belongsToMany(models.Order, {
+      ComboMeal.belongsToMany(models.Order, {
         through: models.OrderCombo,
         foreignKey: "comboId",
         as: "orders",
       });
 
-      Combo.hasMany(models.OrderCombo, {
+      ComboMeal.hasMany(models.OrderCombo, {
         foreignKey: "comboId",
         as: "orderCombos",
       });
     }
   }
 
-  Combo.init(
+  ComboMeal.init(
     {
       name: {
         type: DataTypes.STRING,
@@ -47,13 +47,13 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: "Combo",
+      modelName: "ComboMeal",
       tableName: "Combos",
       timestamps: true,
       createdAt: "createdAt",
       updatedAt: "updatedAt",
-    }
+    },
   );
 
-  return Combo;
+  return ComboMeal;
 };

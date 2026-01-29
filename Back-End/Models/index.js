@@ -22,8 +22,9 @@ db.Seat = require("./seat")(sequelize, Sequelize.DataTypes);
 db.Order = require("./order")(sequelize, Sequelize.DataTypes);
 db.Payment = require("./payment")(sequelize, Sequelize.DataTypes);
 db.ShowtimeSeat = require("./showtimeSeat")(sequelize, Sequelize.DataTypes);
-db.Combo = require("./combo")(sequelize, Sequelize.DataTypes);
+db.ComboMeal = require("./comboMeal")(sequelize, Sequelize.DataTypes);
 db.OrderCombo = require("./orderCombo")(sequelize, Sequelize.DataTypes);
+db.Coupon = require("./coupon")(sequelize, Sequelize.DataTypes);
 
 // Check the models to see it have associate ?
 Object.keys(db).forEach((modelName) => {

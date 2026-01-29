@@ -23,7 +23,7 @@ export default function MyTickets() {
     setTickets(res.data);
 
     const paid = res.data.filter((t) => t.order.status === "paid");
-    const total = paid.reduce((sum, t) => sum + Number(t.price), 0);
+    const total = paid.reduce((sum, t) => sum + Number(t.order.totalAmount), 0);
 
     setTotalSpent(total);
   };
@@ -84,8 +84,8 @@ export default function MyTickets() {
                 "
               >
                 {/* QR */}
-                <div className="flex justify-center">
-                  <div className="bg-white p-2 rounded-lg">
+                <div className="flex justify-center items-center">
+                  <div className="bg-white p-2 rounded-lg max-h-36">
                     <QRCode value={`ORDER-${t.order.id}`} size={120} />
                   </div>
                 </div>
@@ -98,14 +98,16 @@ export default function MyTickets() {
                     </h3>
 
                     <span
-                      className={`px-3 py-1 rounded-full text-xs
+                      className={`px-3 py-2 rounded-full text-xs font-semibold
                       ${
                         t.order.status === "paid"
                           ? "bg-green-600"
                           : "bg-red-600"
                       }`}
                     >
-                      {t.order.status.toUpperCase()}
+                      {t.order.status === "paid" && "Đã thanh toán"}
+                      {t.order.status === "cancelled" && "Đã hủy"}
+                      {t.order.status === "refunded" && "Đã hoàn tiền"}
                     </span>
                   </div>
 
@@ -132,11 +134,14 @@ export default function MyTickets() {
                   </p>
 
                   <p className="text-green-400 font-semibold">
-                    {Number(t.price).toLocaleString()} ₫
+                    {Number(t.order.totalAmount).toLocaleString()} ₫
                   </p>
 
                   <p className="text-yellow-400 text-sm italic">
-                    👉 Đưa mã này cho nhân viên soát vé
+                    {t.order.status === "cancelled" ||
+                    t.order.status === "refunded"
+                      ? "Vé đã hủy"
+                      : "👉 Đưa mã này cho nhân viên soát vé"}
                   </p>
 
                   {/* CANCEL */}

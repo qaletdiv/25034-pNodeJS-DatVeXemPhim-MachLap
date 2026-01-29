@@ -19,6 +19,13 @@ router.post(
   showtimeController.createShowtime,
 );
 
+router.put(
+  "/:id",
+  authenticateToken,
+  authorizeRole("admin"),
+  showtimeController.updateShowtime,
+);
+
 router.get(
   "/theaters",
   authenticateToken,

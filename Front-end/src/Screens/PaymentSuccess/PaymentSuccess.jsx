@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import QRCode from "react-qr-code";
 import { useNavigate } from "react-router-dom";
 import { clearSelectedSeats } from "../../redux/Slices/seatSlice";
+import dayjs from "dayjs";
 
 const PaymentSuccess = () => {
   const paymentData = useSelector((state) => state.orders.confirmPayment);
@@ -13,7 +14,7 @@ const PaymentSuccess = () => {
   const dispatch = useDispatch();
   const name = JSON.parse(localStorage.getItem("currentUser")).name;
   const seatName = paymentData?.tickets?.map(
-    (item) => item.showtimeSeat.seat.seatNumber
+    (item) => item.showtimeSeat.seat.seatNumber,
   );
   useEffect(() => {
     dispatch(clearSelectedSeats());
@@ -57,8 +58,14 @@ const PaymentSuccess = () => {
           />
           <InfoRow label="Số ghế" value={seatName + " "} />
           <InfoRow
+            label="Combo bắp nước"
+            value={paymentData?.orderCombos
+              ?.map((item) => item.combo.description)
+              .join(", ")}
+          />
+          <InfoRow
             label="Giờ chiếu"
-            value={paymentData?.showtime?.startTime?.substring(11, 16)}
+            value={dayjs(paymentData?.showtime?.startTime).format("HH:mm")}
           />
           <InfoRow label="Khách hàng" value={name} />
           <InfoRow

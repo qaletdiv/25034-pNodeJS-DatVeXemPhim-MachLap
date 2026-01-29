@@ -1,6 +1,6 @@
 import React from "react";
 
-const Icon = () => {
+const IconMenuDropdown = () => {
   return (
     <svg
       className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2
@@ -15,4 +15,4 @@ const Icon = () => {
   );
 };
 
-export default Icon;
+export default IconMenuDropdown;

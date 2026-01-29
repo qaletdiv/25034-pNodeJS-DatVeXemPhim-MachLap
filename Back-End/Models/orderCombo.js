@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
         as: "order",
       });
 
-      OrderCombo.belongsTo(models.Combo, {
+      OrderCombo.belongsTo(models.ComboMeal, {
         foreignKey: "comboId",
         as: "combo",
       });
@@ -50,7 +50,7 @@ module.exports = (sequelize, DataTypes) => {
           fields: ["orderId", "comboId"],
         },
       ],
-    }
+    },
   );
 
   return OrderCombo;

@@ -1,5 +1,28 @@
 const { ShowtimeSeat, Seat, sequelize } = require("../Models");
 
+// exports.getSeatsByShowtime = async (req, res, next) => {
+//   try {
+//     const { showtimeId } = req.params;
+
+//     const seats = await ShowtimeSeat.findAll({
+//       where: { showtimeId },
+//       include: [
+//         {
+//           model: Seat,
+//           as: "seat",
+//           attributes: ["id", "seatNumber", "type"],
+//         },
+//       ],
+//       order: [[{ model: Seat, as: "seat" }, "seatNumber", "ASC"]],
+//     });
+
+//     res.status(200).json(seats);
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+// Backend
 exports.getSeatsByShowtime = async (req, res, next) => {
   try {
     const { showtimeId } = req.params;
@@ -10,10 +33,13 @@ exports.getSeatsByShowtime = async (req, res, next) => {
         {
           model: Seat,
           as: "seat",
-          attributes: ["id", "seatNumber", "type"],
+          attributes: ["id", "rowLabel", "seatIndex", "seatNumber", "type"],
         },
       ],
-      order: [[{ model: Seat, as: "seat" }, "seatNumber", "ASC"]],
+      order: [
+        [{ model: Seat, as: "seat" }, "rowLabel", "ASC"],
+        [{ model: Seat, as: "seat" }, "seatIndex", "ASC"],
+      ],
     });
 
     res.status(200).json(seats);
@@ -58,7 +84,7 @@ exports.holdSeat = async (req, res, next) => {
         reservedUntil: expiredAt,
         reservedBy: userId,
       },
-      { transaction: t }
+      { transaction: t },
     );
 
     await t.commit();

@@ -24,7 +24,6 @@ const generateSeats = () => {
         row,
         number: i,
         type: rowIndex >= 5 ? "VIP" : rowIndex === 6 ? "SWEETBOX" : "NORMAL",
-        sold: Math.random() < 0.15,
       });
     }
   });
@@ -32,8 +31,8 @@ const generateSeats = () => {
   // Sweetbox hàng cuối
   seats.push(
     { id: "H1", row: "H", number: "01-02", type: "SWEETBOX", sold: false },
-    { id: "H2", row: "H", number: "03-04", type: "SWEETBOX", sold: true },
-    { id: "H3", row: "H", number: "05-06", type: "SWEETBOX", sold: false }
+    { id: "H2", row: "H", number: "03-04", type: "SWEETBOX", sold: false },
+    { id: "H3", row: "H", number: "05-06", type: "SWEETBOX", sold: false },
   );
 
   return seats;
@@ -60,7 +59,7 @@ export default function SeatSelect() {
     setSelectedSeats((prev) =>
       prev.includes(seat.id)
         ? prev.filter((s) => s !== seat.id)
-        : [...prev, seat.id]
+        : [...prev, seat.id],
     );
   };
 
@@ -128,7 +127,7 @@ export default function SeatSelect() {
   transition
 `}
                     >
-                      {seat.sold ? "✕" : seat.number}
+                      {seat.number}
                     </button>
                   );
                 })}

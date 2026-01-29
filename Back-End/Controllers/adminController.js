@@ -34,7 +34,10 @@ exports.getDashboard = async (req, res) => {
       { type: sequelize.QueryTypes.SELECT },
     );
 
-    const fillRate = ((totalTickets / totalSeats[0].total) * 100).toFixed(1);
+    const fillRate =
+      totalSeats[0].total > 0
+        ? ((totalTickets / totalSeats[0].total) * 100).toFixed(1)
+        : 0;
 
     /* Biểu đồ */
     const revenueChart = await sequelize.query(
@@ -43,7 +46,7 @@ exports.getDashboard = async (req, res) => {
       FROM Orders
       WHERE status='paid'
       GROUP BY DATE(createdAt)
-      ORDER BY date
+      ORDER BY date DESC
       LIMIT 7
     `,
       { type: sequelize.QueryTypes.SELECT },
@@ -59,7 +62,7 @@ exports.getDashboard = async (req, res) => {
       WHERE o.status='paid'
       GROUP BY m.id
       ORDER BY revenue DESC
-      LIMIT 5
+      LIMIT 3
     `,
       { type: sequelize.QueryTypes.SELECT },
     );

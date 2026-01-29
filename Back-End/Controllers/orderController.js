@@ -6,117 +6,25 @@ const {
   sequelize,
   ShowTime,
   Payment,
-  Combo,
   OrderCombo,
   Movie,
   Room,
   MovieTheater,
   Seat,
+  ComboMeal,
+  Coupon,
 } = require("../Models");
 const stripe = require("../config/stripe");
-// exports.createOrder = async (req, res, next) => {
-//   const t = await sequelize.transaction();
+const dayjs = require("dayjs");
 
-//   try {
-//     const userId = req.user.id;
-//     const { showtimeId, seatIds } = req.body;
-
-//     if (!seatIds?.length) {
-//       return res.status(400).json({
-//         message: "Chưa chọn ghế",
-//       });
-//     }
-
-//     /* 1. Lock seats */
-//     const seats = await ShowtimeSeat.findAll({
-//       where: {
-//         id: seatIds,
-//         showtimeId,
-//         reservedBy: userId,
-//         status: "reserved",
-//       },
-//       lock: t.LOCK.UPDATE,
-//       transaction: t,
-//     });
-
-//     if (seats.length !== seatIds.length) {
-//       await t.rollback();
-//       return res.status(409).json({
-//         message: "Có ghế không hợp lệ hoặc đã bị huỷ",
-//       });
-//     }
-
-//     /* 2. Tính tổng tiền */
-//     const totalAmount = seats.reduce((sum, s) => {
-//       if (s.seat?.type === "vip") return sum + 120000;
-//       if (s.seat?.type === "couple") return sum + 200000;
-//       return sum + 100000; // default
-//     }, 0);
-
-//     /* 3. Tạo order */
-//     const expiredAt = new Date(Date.now() + 10 * 60 * 1000); // 10 phút
-
-//     const order = await Order.create(
-//       {
-//         userId,
-//         showtimeId,
-//         totalAmount,
-//         status: "pending",
-//         expiredAt,
-//       },
-//       { transaction: t }
-//     );
-
-//     /* 4. Tạo ticket */
-//     const ticketData = seats.map((seat) => ({
-//       orderId: order.id,
-//       showtimeSeatId: seat.id,
-//       price: totalAmount / seats.length,
-//     }));
-
-//     await Ticket.bulkCreate(ticketData, { transaction: t });
-
-//     /* 5. Chuyển ghế -> BOOKED */
-//     await ShowtimeSeat.update(
-//       {
-//         status: "booked",
-//         reservedBy: null,
-//         reservedUntil: null,
-//       },
-//       {
-//         where: { id: seatIds },
-//         transaction: t,
-//       }
-//     );
-
-//     await t.commit();
-
-//     /* 6. SOCKET REALTIME */
-//     const io = req.app.get("io");
-
-//     seatIds.forEach((id) => {
-//       io.to(`showtime_${showtimeId}`).emit("seat_booked", {
-//         showtimeSeatId: id,
-//       });
-//     });
-
-//     res.json({
-//       message: "Tạo đơn hàng thành công",
-//       orderId: order.id,
-//       totalAmount,
-//     });
-//   } catch (err) {
-//     await t.rollback();
-//     next(err);
-//   }
-// };
+const today = dayjs();
 
 exports.createOrder = async (req, res, next) => {
   const t = await sequelize.transaction();
 
   try {
     const userId = req.user.id;
-    const { showtimeId, seatIds, combos = [] } = req.body;
+    const { showtimeId, seatIds, combos = [], coupon } = req.body;
 
     if (!seatIds?.length) {
       return res.status(400).json({ message: "Chưa chọn ghế" });
@@ -165,7 +73,7 @@ exports.createOrder = async (req, res, next) => {
     if (combos.length) {
       const comboIds = combos.map((c) => c.comboId);
 
-      const dbCombos = await Combo.findAll({
+      const dbCombos = await ComboMeal.findAll({
         where: { id: comboIds },
         transaction: t,
       });
@@ -183,7 +91,37 @@ exports.createOrder = async (req, res, next) => {
       }
     }
 
-    const totalAmount = ticketTotal + comboTotal;
+    let totalAmount = ticketTotal + comboTotal;
+
+    if (coupon && coupon.trim() !== "") {
+      // kiểm tra coupon có hay ko
+      const couponExist = await Coupon.findOne({
+        where: { codeName: coupon },
+      });
+
+      if (!couponExist) {
+        await t.rollback();
+        return res.status(404).json({ message: "Coupon không tồn tại !!!" });
+      }
+
+      if (
+        today.isBefore(dayjs(couponExist.startDate)) ||
+        today.isAfter(dayjs(couponExist.endDate))
+      ) {
+        await t.rollback();
+        return res.status(400).json({ message: "Coupon hết hạn sử dụng !!!" });
+      }
+
+      if (couponExist.type === "percent") {
+        totalAmount = totalAmount - (totalAmount * couponExist.value) / 100;
+      }
+
+      if (couponExist.type === "fixed") {
+        totalAmount = totalAmount - couponExist.value;
+      }
+
+      if (totalAmount < 0) totalAmount = 0;
+    }
 
     /* 4. create order */
     const order = await Order.create(
@@ -194,12 +132,12 @@ exports.createOrder = async (req, res, next) => {
         status: "pending",
         expiredAt: new Date(Date.now() + 5 * 60 * 1000),
       },
-      { transaction: t }
+      { transaction: t },
     );
 
     /* 5. insert OrderCombos */
     if (combos.length) {
-      const dbCombos = await Combo.findAll({
+      const dbCombos = await ComboMeal.findAll({
         where: { id: combos.map((c) => c.comboId) },
         transaction: t,
       });
@@ -214,7 +152,7 @@ exports.createOrder = async (req, res, next) => {
             quantity: c.quantity,
             price: found.price,
           },
-          { transaction: t }
+          { transaction: t },
         );
       }
     }
@@ -227,7 +165,7 @@ exports.createOrder = async (req, res, next) => {
         amount: totalAmount,
         status: "pending",
       },
-      { transaction: t }
+      { transaction: t },
     );
 
     /* 7. Stripe */
@@ -260,7 +198,7 @@ exports.stripeWebhook = async (req, res) => {
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET
+      process.env.STRIPE_WEBHOOK_SECRET,
     );
   } catch (err) {
     return res.status(400).send("Webhook Error");
@@ -354,7 +292,7 @@ const handlePaymentSuccess = async (orderId, transactionCode, amount) => {
         status: "success",
         transactionCode,
       },
-      { transaction: t }
+      { transaction: t },
     );
 
     /* 2. Update order */
@@ -379,7 +317,7 @@ const handlePaymentSuccess = async (orderId, transactionCode, amount) => {
     for (let s of seats) {
       await s.update(
         { status: "booked", reservedBy: null, reservedUntil: null },
-        { transaction: t }
+        { transaction: t },
       );
     }
 
@@ -407,17 +345,13 @@ const handlePaymentSuccess = async (orderId, transactionCode, amount) => {
       };
     });
 
-    // await Ticket.bulkCreate(ticketData, {
-    //   transaction: t,
-    // });
-
     await Ticket.bulkCreate(
       ticketData.map((tk) => ({
         ...tk,
         status: "ACTIVE",
         isActive: 1,
       })),
-      { transaction: t }
+      { transaction: t },
     );
 
     await t.commit();
@@ -501,7 +435,7 @@ exports.cancelTicket = async (req, res) => {
       {
         where: { id: showtimeSeatIds },
         transaction: t,
-      }
+      },
     );
 
     /* ===== XÓA TICKET (QUAN TRỌNG) ===== */
@@ -518,7 +452,7 @@ exports.cancelTicket = async (req, res) => {
       {
         where: { orderId },
         transaction: t,
-      }
+      },
     );
 
     /* ===== UPDATE ORDER ===== */
@@ -572,7 +506,7 @@ exports.getMyOrderLatest = async (req, res) => {
         {
           model: OrderCombo,
           as: "orderCombos",
-          include: [{ model: Combo, as: "combo" }],
+          include: [{ model: ComboMeal, as: "combo" }],
         },
 
         // GHẾ - ĐI QUA TICKET

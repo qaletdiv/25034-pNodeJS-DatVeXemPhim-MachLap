@@ -5,6 +5,7 @@ import Stat from "../../component/Stat/Stat";
 import { axiosClient } from "../../api/axiosClient";
 import { useOutletContext } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import BarChartTopMovies from "../BarChartTopMovies/BarChartTopMovies";
 
 const DataAdmin = () => {
   const [data, setData] = useState(null);
@@ -59,6 +60,7 @@ const DataAdmin = () => {
   };
 
   if (!data) return null;
+  const chartData = [...data.revenueChart].reverse(); // đảo ngược dữ liệu lại do bên backend trả về DESC để dễ xem
 
   return (
     <main
@@ -70,7 +72,6 @@ const DataAdmin = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">📊 Dashboard</h1>
       </div>
-
       {/* STAT */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Stat
@@ -80,27 +81,11 @@ const DataAdmin = () => {
         <Stat title="Vé đã bán" value={data.totalTickets} />
         <Stat title="Lấp đầy ghế" value={data.fillRate + "%"} />
       </div>
-
       {/* CHART */}
-      <LineChart chartData={data.revenueChart} />
 
+      <LineChart chartData={chartData} />
       {/* TOP MOVIES */}
-      <div className="bg-white p-5 rounded-2xl shadow ">
-        <h2 className="font-bold mb-4">🎬 Top phim</h2>
-
-        <div className="space-y-2">
-          {data.topMovies.map((m, i) => (
-            <div
-              key={i}
-              className="flex justify-between bg-gray-50 p-2 rounded"
-            >
-              <span>{m.title}</span>
-              <b>{Number(m.revenue).toLocaleString("vi-VN")}đ</b>
-            </div>
-          ))}
-        </div>
-      </div>
-
+      <BarChartTopMovies data={data.topMovies} />
       {/* ORDER TABLE */}
       <div className="bg-white p-5 rounded-2xl shadow">
         <h2 className="font-bold mb-4">📦 Giao dịch</h2>
@@ -160,7 +145,6 @@ const DataAdmin = () => {
           </table>
         </div>
       </div>
-
       {/* MODAL */}
       <AnimatePresence>
         {showModal && (

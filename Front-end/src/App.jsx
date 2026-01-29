@@ -23,6 +23,7 @@ import NotFound from "./screens/NotFound/NotFound";
 import ProtectedAdmin from "./component/ProtectedAdmin/ProtectedAdmin";
 import DataAdmin from "./component/DataAdmin/DataAdmin";
 import Showtime from "./screens/Showtime/Showtime";
+import SeatSelect from "./component/SeatSelection/SeatSelection";
 
 function App() {
   return (
@@ -48,6 +49,8 @@ function App() {
             }
           ></Route>
           <Route path="/login" element={<Login />}></Route>
+          <Route path="/test" element={<SeatSelect />}></Route>
+
           <Route
             path="/admin"
             element={

@@ -21,6 +21,7 @@ const orderRoutes = require("./Routes/orderRouter");
 const adminRoutes = require("./Routes/adminRouter");
 const showtimeRoutes = require("./Routes/showtimeRouter");
 const comboRoutes = require("./Routes/comboRouter");
+const couponRoutes = require("./Routes/couponRouter");
 const socketServer = require("./socketServer");
 const orderController = require("../Back-End/Controllers/orderController");
 
@@ -49,7 +50,7 @@ app.use(
 app.set("io", io);
 
 const limitmer = rateLimit({
-  max: 300, // limit 300 request
+  max: 500, // limit 300 request
   windowMs: 15 * 60 * 1000, // about 15 minute
   standardHeaders: true,
   legacyHeaders: false,
@@ -83,6 +84,8 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/my-tickets", ticketRoutes);
 
 app.use("/api/combos", comboRoutes);
+
+app.use("/api/coupons", couponRoutes);
 
 app.use("/api/admin", adminRoutes);
 

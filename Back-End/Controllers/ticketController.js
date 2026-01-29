@@ -10,7 +10,7 @@ const {
   Room,
   Seat,
   OrderCombo,
-  Combo,
+  ComboMeal,
 } = require("../Models");
 
 exports.getMyTickets = async (req, res) => {
@@ -42,7 +42,7 @@ exports.getMyTickets = async (req, res) => {
               as: "orderCombos",
               include: [
                 {
-                  model: Combo,
+                  model: ComboMeal,
                   as: "combo",
                 },
               ],

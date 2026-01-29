@@ -9,44 +9,50 @@ dayjs.extend(timezone);
 
 const TZ = "Asia/Ho_Chi_Minh";
 
-//  FORMAT HELPERS (VN TIME)
-
+/* ===== FORMAT HELPERS (VN TIME) ===== */
 const formatDateVN = (iso) => dayjs.utc(iso).tz(TZ).format("YYYY-MM-DD");
 
 const formatTimeVN = (iso) => dayjs.utc(iso).tz(TZ).format("HH:mm");
 
-const isPastShowtime = (iso) => dayjs().isAfter(dayjs.utc(iso).tz(TZ));
+const isPastShowtime = (iso) => dayjs().tz(TZ).isAfter(dayjs.utc(iso).tz(TZ));
+
+/* ===== TODAY (VN) ===== */
+const todayVN = dayjs().tz(TZ).format("YYYY-MM-DD");
 
 const ShowtimePicker = ({ movie }) => {
   const navigate = useNavigate();
+  const [selectedDate, setSelectedDate] = useState(null);
 
-  // get film date list
+  /* ===== 1. DATE LIST (CHỈ HÔM NAY & TƯƠNG LAI) ===== */
   const dates = useMemo(() => {
     if (!movie?.showtimes?.length) return [];
 
     return [
-      ...new Set(movie.showtimes.map((st) => formatDateVN(st.startTime))),
+      ...new Set(
+        movie.showtimes
+          .map((st) => formatDateVN(st.startTime))
+          .filter((date) => dayjs(date).isSameOrAfter(todayVN, "day")),
+      ),
     ].sort((a, b) => dayjs(a).unix() - dayjs(b).unix());
   }, [movie]);
 
-  const [selectedDate, setSelectedDate] = useState(dates[0] || null);
-
+  /* ===== AUTO SELECT NGÀY ĐẦU ===== */
   useEffect(() => {
     if (dates.length && !selectedDate) {
       setSelectedDate(dates[0]);
     }
   }, [dates, selectedDate]);
 
-  // Filter showtime by date
+  /* ===== 2. FILTER SHOWTIME THEO NGÀY ===== */
   const showtimesByDate = useMemo(() => {
     if (!selectedDate) return [];
 
     return movie.showtimes.filter(
-      (st) => formatDateVN(st.startTime) === selectedDate
+      (st) => formatDateVN(st.startTime) === selectedDate,
     );
   }, [movie, selectedDate]);
 
-  // Group by theater
+  /* ===== 3. GROUP THEO RẠP ===== */
   const theaters = useMemo(() => {
     const grouped = showtimesByDate.reduce((acc, st) => {
       const name = st.room?.movietheater?.name || "Không xác định";
@@ -55,10 +61,9 @@ const ShowtimePicker = ({ movie }) => {
       return acc;
     }, {});
 
-    // SORT giờ chiếu trong từng rạp
     Object.keys(grouped).forEach((key) => {
       grouped[key].sort(
-        (a, b) => dayjs.utc(a.startTime).tz(TZ) - dayjs.utc(b.startTime).tz(TZ)
+        (a, b) => dayjs.utc(a.startTime).tz(TZ) - dayjs.utc(b.startTime).tz(TZ),
       );
     });
 
@@ -78,7 +83,7 @@ const ShowtimePicker = ({ movie }) => {
     <div className="bg-[#1a1a1a] rounded-2xl p-8">
       <h2 className="text-2xl font-bold mb-6">Lịch chiếu</h2>
 
-      {/* DATE PICKER */}
+      {/* ===== DATE PICKER ===== */}
       <div className="flex gap-4 mb-8 flex-wrap">
         {dates.map((date) => (
           <button
@@ -93,11 +98,12 @@ const ShowtimePicker = ({ movie }) => {
             `}
           >
             {dayjs(date).format("DD/MM")}
+            {date === todayVN && " (Hôm nay)"}
           </button>
         ))}
       </div>
 
-      {/* THEATER & TIMES */}
+      {/* ===== THEATER & TIMES ===== */}
       <div className="space-y-8">
         {Object.entries(theaters).map(([theater, sts]) => (
           <div key={theater}>
