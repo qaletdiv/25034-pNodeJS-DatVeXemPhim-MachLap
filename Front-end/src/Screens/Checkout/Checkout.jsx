@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -14,7 +14,9 @@ export default function Checkout() {
   const stripe = useStripe();
   const elements = useElements();
 
-  const checkoutData = JSON.parse(localStorage.getItem("checkoutData"));
+  const checkoutData = useMemo(() => {
+    return JSON.parse(localStorage.getItem("checkoutData"));
+  }, []);
 
   const [paymentMethod, setPaymentMethod] = useState("stripe");
   const [timeLeft, setTimeLeft] = useState(300);
@@ -54,15 +56,15 @@ export default function Checkout() {
     return () => clearInterval(timer);
   }, []);
 
-  const fetchCombos = async () => {
+  const fetchCombos = useCallback(async () => {
     const res = await axiosClient.get("/api/combos");
     setCombos(res.data);
-  };
+  }, []);
 
-  const fetchCoupons = async () => {
+  const fetchCoupons = useCallback(async () => {
     const res = await axiosClient.get("/api/coupons");
     setCoupons(res.data);
-  };
+  }, []);
 
   const handleTimeout = () => {
     alert("Hết thời gian giữ ghế");
@@ -70,11 +72,11 @@ export default function Checkout() {
     navigate("/");
   };
 
-  const formatTime = (sec) => {
+  const formatTime = useCallback((sec) => {
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return `${m}:${s < 10 ? "0" : ""}${s}`;
-  };
+  }, []);
 
   /* ===== COMBO LOGIC ===== */
   const updateCombo = (combo, type) => {
@@ -102,23 +104,13 @@ export default function Checkout() {
     });
   };
 
-  const comboTotal = selectedCombos.reduce(
-    (sum, c) => sum + c.price * c.qty,
-    0,
-  );
+  const comboTotal = useMemo(() => {
+    return selectedCombos.reduce((sum, c) => sum + c.price * c.qty, 0);
+  }, [selectedCombos]);
 
   useEffect(() => {
     setFinalTotal(checkoutData?.totalPrice + comboTotal);
   }, [comboTotal]);
-
-  // const coupon = coupons.find((item) => item.codeName === selectCoupon);
-
-  // const finalTotal = checkoutData?.totalPrice + comboTotal;
-  // let finalTotal = checkoutData?.totalPrice + comboTotal;
-  // if (coupon) {
-  // } else {
-  //   finalTotal = checkoutData?.totalPrice + comboTotal;
-  // }
 
   /* ===== API ===== */
   const createOrderApi = async () => {

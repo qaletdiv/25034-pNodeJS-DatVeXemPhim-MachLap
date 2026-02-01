@@ -3,6 +3,9 @@ B2: tiếp tục từ folder Back-End gọi thêm terminal khác để gọi web
 
 B3: từ folder Front-End gọi terminal => npm run dev (là chạy được project)
 
+Lưu ý : vào => trang /admin thêm phim vào showtime rồi vào trang chủ mới có phim
+còn dữ liệu của admin muốn hiện ra thì phải mua vé rồi sẽ hiện ra thống kê các dữ liệu
+
 =====Database Project=====
 
 CREATE DATABASE ticketfilm;
@@ -47,6 +50,7 @@ release_date DATE NOT NULL, -- ngay chieu
 age INT not null,
 language VARCHAR(255) not null,
 name_character text ,
+image VARCHAR(255) NOT NULL default "",
 poster VARCHAR(255) NOT NULL,
 trailer VARCHAR(255) NOT NULL,
 createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -183,6 +187,10 @@ FOREIGN KEY (comboId) REFERENCES Combos(id),
 UNIQUE (orderId, comboId)
 );
 
+INSERT INTO Combos (name, description, price, image)
+VALUES ("Combo 1" , "1 nước + 1 bắp" , 50000 , "https://tse2.mm.bing.net/th/id/OIP.kNWiplwNlCcrtnVdO9ZbJwHaHa?pid=Api&P=0&h=180"),
+("Combo 2" , "2 nước + 1 bắp" , 100000 , "https://tse1.mm.bing.net/th/id/OIP.ZY1RyxdQBSpvW8lDreZqRQHaEK?pid=Api&P=0&h=180");
+
 INSERT INTO Coupons (codeName, value, type, startDate, endDate)
 VALUES
 ('SALE10',10,'percent','2025-01-01','2026-12-31'),
@@ -202,15 +210,71 @@ INSERT INTO Categories (name) VALUES
 ('Khoa học viễn tưởng'),('Gia đình'),('Âm nhạc');
 
 INSERT INTO Movies
-(title,description,format,duration,release_date,age,language,name_character,poster,trailer) VALUES
-('Fast X','Đua xe tốc độ','2D',130,'2024-05-01',16,'English','Dom, Letty','https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2Fnha-ba-toi-mot-phong-teaser.jpg&w=640&q=50','v=dz5mN-iIC4g'),
-('Titanic','Chuyện tình bi thương','2D',195,'2025-12-19',13,'English','Jack, Rose','https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2FFINNICK-MAIN_POSTER.jpg&w=640&q=50','v=Qg_vcCwvnIs'),
-('Conjuring','Phim kinh dị','2D',120,'2023-10-01',18,'English','Ed, Lorraine','https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2Fnguoi-dep-quai-la-main.jpg&w=640&q=50','v=Qg_vcCwvnIs'),
-('Avengers','Siêu anh hùng','3D',150,'2019-04-20',13,'English','Iron Man','https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2Ftinh-dau-kho-noi-main.jpg&w=640&q=50','v=Qg_vcCwvnIs'),
-('Toy Story','Hoạt hình','2D',95,'2015-06-10',0,'English','Woody','https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2Fboss.png&w=640&q=50','v=Qg_vcCwvnIs'),
-('Up','Phiêu lưu','2D',100,'2012-05-05',0,'English','Carl','https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2Ftom-jerry.jpg&w=640&q=50','v=Qg_vcCwvnIs'),
-('Joker','Tâm lý','2D',120,'2026-02-10',18,'English','Arthur','https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2FMB-Main_Poster-Social.jpg&w=640&q=50','v=Qg_vcCwvnIs'),
-('Gia đình là số 1','Gia đình','2D',90,'2026-01-01',0,'Vietnamese','Ba, Mẹ','https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F02-2026%2Ftho-oi.jpeg&w=640&q=50','v=Qg_vcCwvnIs')
+(title, description, format, duration, release_date, age, language, name_character, image, poster, trailer)
+VALUES
+('Avengers: Endgame',
+'Biệt đội Avengers tập hợp lần cuối để đảo ngược thảm họa do Thanos gây ra.',
+'2D', 181, '2019-04-26', 13, 'English',
+'Iron Man, Captain America, Thor, Hulk',
+'https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2Fnha-ba-toi-mot-phong-teaser.jpg&w=640&q=50','v=dz5mN-iIC4g',
+'https://tse2.mm.bing.net/th/id/OIP.81N3ZZE7lG6SlAgUa-C5xQHaD0?pid=Api&P=0&h=180',
+'Qg_vcCwvnIs'),
+
+('Spider-Man: No Way Home',
+'Peter Parker đối mặt với đa vũ trụ khi danh tính bị bại lộ.',
+'IMAX', 148, '2021-12-17', 13, 'English',
+'Spider-Man, Doctor Strange',
+'https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2FFINNICK-MAIN_POSTER.jpg&w=640&q=50',
+'https://tse4.mm.bing.net/th/id/OIP.qVEOhRzztu9zEmy4ZbMeygHaEo?pid=Api&P=0&h=180',
+'Qg_vcCwvnIs'),
+
+('Fast & Furious 9',
+'Dom Toretto phải đối đầu với người em trai bí ẩn của mình.',
+'2D', 145, '2021-06-25', 16, 'English',
+'Dom Toretto, Letty, Jakob',
+'https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2Fnguoi-dep-quai-la-main.jpg&w=640&q=50',
+'https://tse2.mm.bing.net/th/id/OIP.81N3ZZE7lG6SlAgUa-C5xQHaD0?pid=Api&P=0&h=180',
+'Qg_vcCwvnIs'),
+
+('Avatar: The Way of Water',
+'Jake Sully khám phá đại dương Pandora cùng gia đình.',
+'3D', 192, '2022-12-16', 13, 'English',
+'Jake Sully, Neytiri',
+'https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2Ftinh-dau-kho-noi-main.jpg&w=640&q=50',
+'https://tse2.mm.bing.net/th/id/OIP.81N3ZZE7lG6SlAgUa-C5xQHaD0?pid=Api&P=0&h=180',
+'Qg_vcCwvnIs'),
+
+('Your Name',
+'Câu chuyện hoán đổi thân xác đầy cảm xúc giữa hai thiếu niên.',
+'2D', 106, '2016-08-26', 13, 'Japanese',
+'Taki, Mitsuha',
+'https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2Fboss.png&w=640&q=50',
+'https://tse4.mm.bing.net/th/id/OIP.qVEOhRzztu9zEmy4ZbMeygHaEo?pid=Api&P=0&h=180',
+'Qg_vcCwvnIs'),
+
+('Parasite',
+'Một gia đình nghèo dần xâm nhập vào cuộc sống của gia đình giàu có.',
+'2D', 132, '2019-05-30', 18, 'Korean',
+'Kim Ki-taek, Park Dong-ik',
+'https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2Ftom-jerry.jpg&w=640&q=50',
+'https://tse4.mm.bing.net/th/id/OIP.qVEOhRzztu9zEmy4ZbMeygHaEo?pid=Api&P=0&h=180',
+'Qg_vcCwvnIs'),
+
+('The Batman',
+'Batman điều tra những vụ án đen tối tại Gotham.',
+'IMAX', 176, '2022-03-04', 16, 'English',
+'Bruce Wayne, Catwoman, Riddler',
+'https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F01-2026%2FMB-Main_Poster-Social.jpg&w=640&q=50',
+'the_batman_poster.jpg',
+'Qg_vcCwvnIs'),
+
+('Doraemon: Nobita and the New Steel Troops',
+'Nobita và Doraemon bảo vệ trái đất khỏi đội quân robot.',
+'2D', 109, '2028-03-05', 6, 'Japanese',
+'Doraemon, Nobita, Shizuka',
+'https://cinestar.com.vn/_next/image/?url=https%3A%2F%2Fapi-website.cinestar.com.vn%2Fmedia%2Fwysiwyg%2FPosters%2F02-2026%2Ftho-oi.jpeg&w=640&q=50',
+'https://tse4.mm.bing.net/th/id/OIP.qVEOhRzztu9zEmy4ZbMeygHaEo?pid=Api&P=0&h=180',
+'Qg_vcCwvnIs');
 
 INSERT INTO MovieCategories VALUES
 (1,1),(2,2),(3,3),(4,1),(5,5),
@@ -221,7 +285,7 @@ INSERT INTO Movietheaters (name,address,city) VALUES
 ('Lotte Cinema','50 Nguyễn Trãi','HCM'),
 ('Galaxy','100 Trần Hưng Đạo','Hà Nội'),
 ('BHD','35 Hai Bà Trưng','Hà Nội'),
-('Beta','25 Phạm Văn Đồng','Đà Nẵng')
+('Beta','25 Phạm Văn Đồng','Đà Nẵng');
 
 INSERT INTO Rooms (theaterId,name,totalSeats) VALUES
 (1,'Room 1',50),(1,'Room 2',60),
@@ -440,10 +504,20 @@ INSERT INTO Seats (roomId, rowLabel, seatIndex, seatNumber, type) VALUES
 (5,'H',3,'03-04','couple'),
 (5,'H',5,'05-06','couple');
 
-INSERT INTO Showtimes (movieId,roomId,startTime,price) VALUES
-(1,1,'2026-02-24 16:00:00',90000),
-(2,2,'2026-02-24 15:00:00',80000),
-(3,3,'2026-02-21 18:00:00',85000),
-(4,4,'2026-03-21 20:00:00',95000),
-(5,5,'2026-03-22 17:00:00',70000),
-(6,6,'2026-03-22 19:00:00',75000),
+INSERT INTO Seats (roomId, rowLabel, seatIndex, seatNumber, type)
+SELECT r.roomId, s.rowLabel, s.seatIndex, s.seatNumber, s.type
+FROM Seats s
+CROSS JOIN (
+SELECT 6 AS roomId UNION ALL
+SELECT 7 UNION ALL
+SELECT 8 UNION ALL
+SELECT 9 UNION ALL
+SELECT 10
+) r
+WHERE s.roomId = 1
+AND NOT EXISTS (
+SELECT 1
+FROM Seats x
+WHERE x.roomId = r.roomId
+AND x.seatNumber = s.seatNumber
+);

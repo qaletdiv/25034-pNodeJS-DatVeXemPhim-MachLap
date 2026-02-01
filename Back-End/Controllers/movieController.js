@@ -36,14 +36,14 @@ exports.getAllMovie = async (req, res, next) => {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
 
-      const endOfDay = new Date();
-      endOfDay.setHours(23, 59, 59, 999);
+      // const endOfDay = new Date();
+      // endOfDay.setHours(23, 59, 59, 999);
 
       const showtimeWhere = {};
 
       if (status === "now") {
         showtimeWhere.startTime = {
-          [Op.between]: [startOfDay, endOfDay],
+          [Op.gte]: startOfDay, // tu hom nay ve sau
         };
       }
 

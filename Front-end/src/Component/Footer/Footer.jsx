@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -92,8 +93,8 @@ const Footer = () => {
             {/* SOCIAL */}
             <div className="flex space-x-4 mb-4 md:mb-0">
               {/* Facebook */}
-              <a
-                href="#"
+              <Link
+                to="https://www.facebook.com/lap.mach.2025/"
                 className="group w-10 h-10 flex items-center justify-center rounded-full 
       bg-blue-600 border border-blue-600 
       hover:opacity-50 hover:border-blue-600 transition-all duration-300"
@@ -112,7 +113,7 @@ c0-3.1 1.894-4.788 4.659-4.788 1.325 0 2.464.099
 24 24 23.403 24 22.674V1.326C24 .597 23.403 0 22.675 0z"
                   />
                 </svg>
-              </a>
+              </Link>
               {/* Instagram */}
               <a
                 href="#"
