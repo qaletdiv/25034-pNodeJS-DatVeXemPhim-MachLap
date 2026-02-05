@@ -269,7 +269,9 @@ export default function Seat() {
     (state) => state.seats,
   );
 
-  const currentMovie = useSelector((state) => state.movies.currentMovie);
+  const currentMovie =
+    useSelector((state) => state.movies.currentMovie) ||
+    JSON.parse(localStorage.getItem("currentMovie"));
 
   const currentShowtime = currentMovie?.showtimes?.find(
     (item) => Number(item.id) === Number(showtimeId),
@@ -277,7 +279,7 @@ export default function Seat() {
   console.log(currentShowtime, "testttttttttttttttttt");
 
   const theater = currentShowtime?.room?.movietheater?.name;
-  const priceBase = currentShowtime?.price;
+  const priceBase = currentShowtime?.price || 0;
 
   const formatTimeHHMM = (timeString) => {
     if (!timeString) return "";
@@ -336,7 +338,7 @@ export default function Seat() {
     return selectedSeats.reduce((sum, seat) => {
       if (seat.seat.type === "vip") return sum + 120000;
       if (seat.seat.type === "couple") return sum + 200000;
-      return sum + Number(priceBase);
+      return sum + (Number(priceBase) || 0);
     }, 0);
   }, [selectedSeats, priceBase]);
 
@@ -394,6 +396,14 @@ export default function Seat() {
 
   if (loading) {
     return <div className="text-center mt-20 text-white">Đang tải ghế...</div>;
+  }
+
+  if (!currentMovie) {
+    return (
+      <div className="text-center mt-20 text-white">
+        Đang tải thông tin phim...
+      </div>
+    );
   }
 
   return (

@@ -1,25 +1,25 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const initialState = {
+  title: null,
+  category: null,
+  format: null,
+  theater: null,
+};
+
 const filterSlice = createSlice({
   name: "filters",
-  initialState: {
-    title: "",
-    category: "",
-    format: "",
-    theater: "",
-  },
+  initialState,
   reducers: {
     setFilter: (state, action) => {
       Object.entries(action.payload).forEach(([key, value]) => {
-        if (value === "" || value === null) {
-          delete state[key];
-        } else {
-          state[key] = value;
-        }
+        state[key] = value ?? null;
       });
     },
+
+    resetFilter: () => initialState,
   },
 });
 
-export const { setFilter } = filterSlice.actions;
+export const { setFilter, resetFilter } = filterSlice.actions;
 export default filterSlice.reducer;

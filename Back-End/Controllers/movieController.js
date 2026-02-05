@@ -1,4 +1,11 @@
-const { Category, Movie, ShowTime, Room, MovieTheater } = require("../Models");
+const {
+  Category,
+  Movie,
+  ShowTime,
+  Room,
+  MovieTheater,
+  sequelize,
+} = require("../Models");
 const { Op } = require("sequelize");
 
 exports.getAllMovie = async (req, res, next) => {
@@ -18,6 +25,7 @@ exports.getAllMovie = async (req, res, next) => {
         as: "categories",
         through: { attributes: [] },
         where: { id: { [Op.in]: categoryIds } },
+        required: true,
       });
     }
 
@@ -87,6 +95,101 @@ exports.getAllMovie = async (req, res, next) => {
     next(err);
   }
 };
+
+// exports.getAllMovie = async (req, res, next) => {
+//   try {
+//     const { category, title, format, status, theater } = req.query;
+//     console.log("📥 Backend received query params:", req.query);
+
+//     const where = {};
+//     const include = [];
+
+//     const now = new Date();
+
+//     /* ===== CATEGORY ===== */
+//     if (category && category.trim() !== "") {
+//       const categoryIds = category.split(",").map(Number);
+//       include.push({
+//         model: Category,
+//         as: "categories",
+//         through: { attributes: [] },
+//         where: { id: { [Op.in]: categoryIds } },
+//         required: true,
+//       });
+//     }
+
+//     /* ===== TITLE ===== */
+//     if (title) {
+//       where.title = { [Op.like]: `%${title}%` };
+//     }
+
+//     /* ===== FORMAT ===== */
+//     if (format && format.trim() !== "") {
+//       const cleanFormat = format.trim().toLowerCase();
+
+//       where.format = sequelize.where(
+//         sequelize.fn("LOWER", sequelize.col("format")),
+//         cleanFormat,
+//       );
+//     }
+
+//     /* ===== SHOWTIME / THEATER ===== */
+//     if (status === "now") {
+//       const startOfDay = new Date();
+//       startOfDay.setHours(0, 0, 0, 0);
+
+//       // const endOfDay = new Date();
+//       // endOfDay.setHours(23, 59, 59, 999);
+
+//       const showtimeWhere = {};
+
+//       if (status === "now") {
+//         showtimeWhere.startTime = {
+//           [Op.gte]: startOfDay, // tu hom nay ve sau
+//         };
+//       }
+
+//       include.push({
+//         model: ShowTime,
+//         as: "showtimes",
+//         required: true, // bắt buộc có suất chiếu
+//         where: showtimeWhere,
+//         include: [
+//           {
+//             model: Room,
+//             as: "room",
+//             required: !!theater,
+//             include: [
+//               {
+//                 model: MovieTheater,
+//                 as: "movietheater",
+//                 required: !!theater,
+//                 ...(theater && { where: { id: Number(theater) } }),
+//               },
+//             ],
+//           },
+//         ],
+//       });
+//     }
+
+//     /* ===== COMING SOON ===== */
+//     if (status === "soon") {
+//       where.release_date = { [Op.gt]: now };
+//     }
+
+//     const movies = await Movie.findAll({
+//       where,
+//       include,
+//       distinct: true,
+//       order: [["release_date", "ASC"]],
+//       subQuery: true,
+//     });
+
+//     res.status(200).json(movies);
+//   } catch (err) {
+//     next(err);
+//   }
+// };
 
 exports.getDetailMovie = async (req, res, next) => {
   const filmId = Number(req.params.id);

@@ -1,5 +1,5 @@
 import { Play, Clock, Globe } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 
@@ -10,6 +10,15 @@ const MovieDetail = () => {
   const [openTrailer, setOpenTrailer] = useState(false);
   const dispatch = useDispatch();
   const { id } = useParams();
+  const scheduleRef = useRef(null);
+  const status = useSelector((state) => state.movies.status);
+
+  const handleScrollToSchedule = () => {
+    scheduleRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   useEffect(() => {
     dispatch(fetchMovieById(id));
@@ -76,9 +85,14 @@ const MovieDetail = () => {
 
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <button className="w-full sm:w-auto px-6 py-3 bg-red-600 rounded-lg font-semibold">
-                🎟 Đặt vé
-              </button>
+              {status === "now" && (
+                <button
+                  onClick={handleScrollToSchedule}
+                  className="w-full sm:w-auto px-6 py-3 bg-red-600 rounded-lg font-semibold"
+                >
+                  🎟 Đặt vé
+                </button>
+              )}
 
               <button
                 onClick={() => setOpenTrailer(true)}
@@ -108,7 +122,7 @@ const MovieDetail = () => {
         </div>
 
         {/* Showtime */}
-        <div className="mt-10 md:mt-16">
+        <div className="mt-10 md:mt-16" ref={scheduleRef}>
           <ShowtimePicker movie={movie} />
         </div>
       </div>

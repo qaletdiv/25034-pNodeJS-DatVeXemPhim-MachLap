@@ -31,7 +31,7 @@ const MovieCard = ({ movie }) => {
         <div className="relative rounded-2xl overflow-hidden bg-gray-900">
           {/* Poster */}
           <img
-            src={movie.image}
+            src={movie.image || null}
             alt={movie.title}
             className="
               w-full object-cover

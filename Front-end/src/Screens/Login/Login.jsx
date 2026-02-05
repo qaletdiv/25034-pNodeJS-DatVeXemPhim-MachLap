@@ -8,6 +8,7 @@ import {
   login,
   googleLogin,
   loginFacebook,
+  resetError,
 } from "../../redux/Slices/authSlice";
 
 const Login = () => {
@@ -20,6 +21,7 @@ const Login = () => {
   const location = useLocation();
 
   const from = location.state?.from?.pathname || "/";
+  const to = location.state?.from?.pathname || "/admin";
 
   const validate = () => {
     const newErrors = {};
@@ -38,7 +40,6 @@ const Login = () => {
 
     if (validate()) {
       const data = await dispatch(login({ emailOrPhone, password }));
-      console.log(data);
 
       if (login.fulfilled.match(data)) {
         toast.success("Đăng nhập thành công!", {
@@ -47,9 +48,12 @@ const Login = () => {
           hideProgressBar: false,
           theme: "light",
         });
-        // localStorage.setItem("currentUser", email);
-        // await dispatch(fetchProduct())
-        navigate(from, { replace: true });
+        const role = JSON.parse(localStorage.getItem("currentUser")).role;
+        if (role === "admin") {
+          navigate(to, { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       }
     }
   };
@@ -66,7 +70,12 @@ const Login = () => {
           autoClose: 2000,
           theme: "light",
         });
-        navigate(from, { replace: true });
+        const role = JSON.parse(localStorage.getItem("currentUser")).role;
+        if (role === "admin") {
+          navigate(to, { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       }
     } else {
       toast.error("Đăng nhập Facebook thất bại");
@@ -194,7 +203,14 @@ const Login = () => {
                     autoClose: 2000,
                     theme: "light",
                   });
-                  navigate(from, { replace: true });
+                  const role = JSON.parse(
+                    localStorage.getItem("currentUser"),
+                  ).role;
+                  if (role === "admin") {
+                    navigate(to, { replace: true });
+                  } else {
+                    navigate(from, { replace: true });
+                  }
                 } else {
                   toast.error("Đăng nhập Google thất bại");
                 }
@@ -217,6 +233,9 @@ const Login = () => {
           <p className="text-center text-sm text-gray-500 mt-6">
             Bạn chưa có tài khoản?
             <Link
+              onClick={() => {
+                dispatch(resetError());
+              }}
               to={"/register"}
               className="text-indigo-600 font-medium hover:underline"
             >

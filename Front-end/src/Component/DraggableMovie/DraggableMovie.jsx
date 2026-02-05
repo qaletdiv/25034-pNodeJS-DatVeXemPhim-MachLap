@@ -14,7 +14,7 @@ export default function DraggableMovie({ movie }) {
       style={{ opacity: isDragging ? 0.3 : 1 }}
       className="flex gap-3 bg-white p-2 rounded shadow cursor-grab"
     >
-      <img src={movie.poster} className="w-12 h-16 object-cover" />
+      <img src={movie.image} className="w-12 h-16 object-cover" />
       <p>{movie.title}</p>
     </div>
   );

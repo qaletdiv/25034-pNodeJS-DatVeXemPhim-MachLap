@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import { register } from "../../redux/Slices/authSlice";
+import { register, resetError } from "../../redux/Slices/authSlice";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -60,7 +60,7 @@ const Register = () => {
     if (validate()) {
       try {
         const data = await dispatch(
-          register({ email, name, phone, password, confirmPass })
+          register({ email, name, phone, password, confirmPass }),
         );
         if (register.fulfilled.match(data)) {
           navigate("/login");
@@ -207,6 +207,9 @@ const Register = () => {
           <p className="text-center text-sm text-gray-500 mt-6">
             Bạn dã có tài khoản?
             <Link
+              onClick={() => {
+                dispatch(resetError());
+              }}
               to={"/login"}
               className="text-indigo-600 font-medium hover:underline"
             >

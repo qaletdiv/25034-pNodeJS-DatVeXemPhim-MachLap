@@ -1,34 +1,12 @@
 const { ShowtimeSeat, Seat, sequelize } = require("../Models");
 
-// exports.getSeatsByShowtime = async (req, res, next) => {
-//   try {
-//     const { showtimeId } = req.params;
-
-//     const seats = await ShowtimeSeat.findAll({
-//       where: { showtimeId },
-//       include: [
-//         {
-//           model: Seat,
-//           as: "seat",
-//           attributes: ["id", "seatNumber", "type"],
-//         },
-//       ],
-//       order: [[{ model: Seat, as: "seat" }, "seatNumber", "ASC"]],
-//     });
-
-//     res.status(200).json(seats);
-//   } catch (err) {
-//     next(err);
-//   }
-// };
-
-// Backend
 exports.getSeatsByShowtime = async (req, res, next) => {
   try {
     const { showtimeId } = req.params;
 
     const seats = await ShowtimeSeat.findAll({
       where: { showtimeId },
+      attributes: ["id", "status", "reservedBy", "reservedUntil", "showtimeId"],
       include: [
         {
           model: Seat,

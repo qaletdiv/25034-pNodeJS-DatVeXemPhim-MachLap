@@ -5,7 +5,7 @@ export const register = createAsyncThunk(
   "auth/register",
   async (
     { name, password, email, phone, confirmPass },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await axiosClient.post("/api/register", {
@@ -23,7 +23,7 @@ export const register = createAsyncThunk(
       console.log(message, "message");
       return rejectWithValue(message || "Register failed");
     }
-  }
+  },
 );
 
 export const login = createAsyncThunk(
@@ -54,7 +54,7 @@ export const login = createAsyncThunk(
 
       return rejectWithValue(message || "Login failed");
     }
-  }
+  },
 );
 
 export const googleLogin = createAsyncThunk(
@@ -75,10 +75,10 @@ export const googleLogin = createAsyncThunk(
       return { accessToken, user };
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Google login failed"
+        error.response?.data?.message || "Google login failed",
       );
     }
-  }
+  },
 );
 
 export const loginFacebook = createAsyncThunk(
@@ -99,7 +99,7 @@ export const loginFacebook = createAsyncThunk(
     } catch (err) {
       return rejectWithValue("Facebook login failed");
     }
-  }
+  },
 );
 
 export const logout = createAsyncThunk("auth/logout", async () => {
@@ -115,7 +115,11 @@ const authSlices = createSlice({
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    resetError(state, action) {
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(register.pending, (state) => {
@@ -181,5 +185,7 @@ const authSlices = createSlice({
       });
   },
 });
+
+export const { resetError } = authSlices.actions;
 
 export default authSlices.reducer;

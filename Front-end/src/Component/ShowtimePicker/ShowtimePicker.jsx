@@ -117,7 +117,13 @@ const ShowtimePicker = ({ movie }) => {
                   <button
                     key={st.id}
                     disabled={disabled}
-                    onClick={() => navigate(`/seats/${st.id}`)}
+                    onClick={() => {
+                      navigate(`/seats/${st.id}`);
+                      localStorage.setItem(
+                        "currentMovie",
+                        JSON.stringify(movie),
+                      );
+                    }}
                     className={`px-6 py-3 rounded-lg border transition
                       ${
                         disabled

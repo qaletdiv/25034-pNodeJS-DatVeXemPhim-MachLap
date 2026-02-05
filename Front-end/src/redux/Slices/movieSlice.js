@@ -1,10 +1,24 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { axiosClient } from "../../api/axiosClient";
 
+// export const fetchMovie = createAsyncThunk(
+//   "movies/fetchMovie",
+//   async (params, { signal }) => {
+//     const response = await axiosClient.get("/api/movie", {
+//       params,
+//       signal,
+//     });
+//     return response.data;
+//   },
+// );
+
 export const fetchMovie = createAsyncThunk(
   "movies/fetchMovie",
-  async (params = {}) => {
-    const response = await axiosClient.get("/api/movie", { params });
+  async (params, { signal }) => {
+    const response = await axiosClient.get("/api/movie", {
+      params: params.queryParams || params,
+      signal: signal,
+    });
     return response.data;
   },
 );
@@ -95,6 +109,7 @@ const initialState = {
   error: null,
   status: "now",
   currentMovie: null,
+  currentRequestId: null,
 };
 
 const movieSlice = createSlice({
@@ -117,12 +132,15 @@ const movieSlice = createSlice({
       .addCase(fetchMovie.pending, (state, action) => {
         state.loading = true;
         state.error = null;
+        state.currentRequestId = action.meta.requestId;
       })
       .addCase(fetchMovie.fulfilled, (state, action) => {
+        if (state.currentRequestId !== action.meta.requestId) return;
         state.loading = false;
         state.movies = action.payload;
       })
       .addCase(fetchMovie.rejected, (state, action) => {
+        if (state.currentRequestId !== action.meta.requestId) return;
         state.loading = false;
         state.error = action.error.message;
       })

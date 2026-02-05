@@ -1,4 +1,4 @@
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector, useDispatch, shallowEqual } from "react-redux";
 import { useEffect, useState } from "react";
 
 import MovieCard from "../MovieCard/MovieCard";
@@ -6,13 +6,10 @@ import { fetchMovie, setStatus } from "../../redux/Slices/movieSlice";
 
 const MovieGrid = () => {
   const status = useSelector((state) => state.movies.status);
-  const movies = useSelector((state) => state.movies.movies);
+  const movies = useSelector((state) => state.movies.movies, shallowEqual);
   console.log(movies, "movieeeeeeeee");
 
   const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(fetchMovie({ status }));
-  }, [status, dispatch]);
 
   return (
     <section className="py-14">

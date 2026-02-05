@@ -12,7 +12,7 @@ export const fetchSeats = createAsyncThunk(
     } catch (err) {
       return rejectWithValue("Lỗi tải ghế");
     }
-  }
+  },
 );
 
 /* ================= HOLD SEAT ================= */
@@ -25,7 +25,7 @@ export const holdSeat = createAsyncThunk(
     } catch (err) {
       return rejectWithValue("Ghế đã được giữ");
     }
-  }
+  },
 );
 /* ================= RELEASE SEAT ================= */
 export const releaseSeat = createAsyncThunk(
@@ -37,7 +37,7 @@ export const releaseSeat = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response?.data?.message);
     }
-  }
+  },
 );
 
 const seatSlice = createSlice({
@@ -63,7 +63,7 @@ const seatSlice = createSlice({
       // nếu ghế do user khác giữ → remove khỏi selection
       if (userId !== currentUserId) {
         state.selectedSeatIds = state.selectedSeatIds.filter(
-          (id) => id !== showtimeSeatId
+          (id) => id !== showtimeSeatId,
         );
       }
     },
@@ -75,7 +75,7 @@ const seatSlice = createSlice({
       if (seat) seat.status = "available";
 
       state.selectedSeatIds = state.selectedSeatIds.filter(
-        (id) => id !== showtimeSeatId
+        (id) => id !== showtimeSeatId,
       );
     },
 
@@ -83,7 +83,7 @@ const seatSlice = createSlice({
       const { showtimeSeatId } = action.payload;
 
       const seat = state.seats.find(
-        (s) => Number(s.id) === Number(showtimeSeatId)
+        (s) => Number(s.id) === Number(showtimeSeatId),
       );
 
       if (seat) {
@@ -99,7 +99,7 @@ const seatSlice = createSlice({
 
       if (state.selectedSeatIds.includes(seatId)) {
         state.selectedSeatIds = state.selectedSeatIds.filter(
-          (id) => id !== seatId
+          (id) => id !== seatId,
         );
       } else {
         state.selectedSeatIds.push(seatId);
@@ -120,6 +120,20 @@ const seatSlice = createSlice({
       .addCase(fetchSeats.fulfilled, (state, action) => {
         state.loading = false;
         state.seats = action.payload;
+        // Restore ghế mà user đang giữ sau khi reload
+        const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+        if (currentUser) {
+          const myReservedSeats = action.payload
+            .filter(
+              (s) =>
+                s.status === "reserved" &&
+                Number(s.reservedBy) === Number(currentUser.id),
+            )
+            .map((s) => s.id);
+
+          state.selectedSeatIds = myReservedSeats;
+        }
       })
       .addCase(fetchSeats.rejected, (state, action) => {
         state.loading = false;
