@@ -231,7 +231,7 @@ export default function Showtime() {
           {activeDrag?.type === "movie" && (
             <div className="flex gap-3 bg-white p-2 rounded shadow opacity-70">
               <img
-                src={activeDrag.data.poster}
+                src={activeDrag.data.image}
                 className="w-12 h-16 object-cover"
               />
               <p>{activeDrag.data.title}</p>

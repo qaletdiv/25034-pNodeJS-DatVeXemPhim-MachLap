@@ -18,6 +18,19 @@ exports.getTheaters = async (req, res) => {
   res.json(data);
 };
 
+exports.getShowtimeSeat = async (req, res) => {
+  try {
+    const data = await ShowtimeSeat.findAll();
+
+    if (data.length == 0)
+      return res.status(404).json({ message: "Không tìm thấy" });
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.getGrid = async (req, res) => {
   const { theaterId, date } = req.query;
 

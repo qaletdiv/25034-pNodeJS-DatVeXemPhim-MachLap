@@ -33,4 +33,10 @@ router.get(
   showtimeController.getTheaters,
 );
 
+router.get(
+  "/reservedUntil",
+  authenticateToken,
+  showtimeController.getShowtimeSeat,
+);
+
 module.exports = router;

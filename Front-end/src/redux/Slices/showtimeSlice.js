@@ -47,11 +47,20 @@ export const updateShowtime = createAsyncThunk(
   },
 );
 
+export const getShowtimeSeatByUserId = createAsyncThunk(
+  "showtime/getShowtimeSeatByUserId",
+  async () => {
+    const res = await axiosClient.get("/api/showtimes/reservedUntil");
+    return res.data;
+  },
+);
+
 const slice = createSlice({
   name: "showtime",
   initialState: {
     theaters: [],
     grid: [],
+    showtimeSeats: [],
     loading: false,
     error: null,
   },
@@ -70,6 +79,9 @@ const slice = createSlice({
       })
       .addCase(fetchTheaters.fulfilled, (s, a) => {
         s.theaters = a.payload;
+      })
+      .addCase(getShowtimeSeatByUserId.fulfilled, (s, a) => {
+        s.showtimeSeats = a.payload;
       })
       .addCase(createShowtime.fulfilled, (s) => {})
       .addCase(updateShowtime.fulfilled, (s) => {});

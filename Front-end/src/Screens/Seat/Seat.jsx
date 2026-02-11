@@ -276,7 +276,6 @@ export default function Seat() {
   const currentShowtime = currentMovie?.showtimes?.find(
     (item) => Number(item.id) === Number(showtimeId),
   );
-  console.log(currentShowtime, "testttttttttttttttttt");
 
   const theater = currentShowtime?.room?.movietheater?.name;
   const priceBase = currentShowtime?.price || 0;

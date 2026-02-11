@@ -5,9 +5,10 @@ import { toast } from "react-toastify";
 import dayjs from "dayjs";
 
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { createOrder } from "../../redux/Slices/orderSlice";
 import { axiosClient } from "../../api/axiosClient";
+import { getShowtimeSeatByUserId } from "../../redux/Slices/showtimeSlice";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -18,12 +19,28 @@ export default function Checkout() {
     return JSON.parse(localStorage.getItem("checkoutData"));
   }, []);
 
+  const userId = useMemo(() => {
+    return JSON.parse(localStorage.getItem("currentUser")).id;
+  }, []);
+
   const [paymentMethod, setPaymentMethod] = useState("stripe");
-  const [timeLeft, setTimeLeft] = useState(300);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [loading, setLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState(null);
   const [error, setError] = useState("");
   const [couponData, setCouponData] = useState(null);
+  const showtimeSeat = useSelector((state) => state.showtime.showtimeSeats);
+  const dispatch = useDispatch();
+
+  const lockedSeat = useMemo(() => {
+    return showtimeSeat.find(
+      (item) =>
+        item.showtimeId === Number(checkoutData?.showtimeId) &&
+        item.reservedBy === userId,
+    );
+  }, [showtimeSeat, checkoutData, userId]);
+
+  const reservedUntil = lockedSeat?.reservedUntil;
 
   // Tổng tiền
   const [finalTotal, setFinalTotal] = useState(checkoutData?.totalPrice || 0);
@@ -35,6 +52,18 @@ export default function Checkout() {
   /* ===== VOUCHER COUPON===== */
   const [coupons, setCoupons] = useState([]);
   const [selectCoupon, setSelectCoupon] = useState("");
+
+  useEffect(() => {
+    dispatch(getShowtimeSeatByUserId());
+  }, []);
+
+  useEffect(() => {
+    if (!reservedUntil) return;
+
+    const diff = dayjs(reservedUntil).diff(dayjs(), "second");
+
+    setTimeLeft(Math.max(diff, 0));
+  }, [reservedUntil]);
 
   /* ===== COUNTDOWN ===== */
   useEffect(() => {
@@ -67,9 +96,9 @@ export default function Checkout() {
   }, []);
 
   const handleTimeout = () => {
-    alert("Hết thời gian giữ ghế");
+    toast.error("hết thời gian giữ ghế");
     localStorage.removeItem("checkoutData");
-    navigate("/");
+    navigate(-2);
   };
 
   const formatTime = useCallback((sec) => {
